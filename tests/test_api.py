@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from pymongo.errors import ServerSelectionTimeoutError
+from pymongo.errors import DuplicateKeyError, ServerSelectionTimeoutError
 
 from app.api import create_app
 from app.memory import MemoryRepository
@@ -314,3 +314,114 @@ def test_simulation_selector_includes_only_count_and_latest_timestamp():
     assert item["simulation_id"] == config.simulation_id
     assert item["stored_departures"] == 1
     assert item["last_emitted_at"] == "2026-10-05T08:00:00Z"
+
+
+def test_simulation_selector_aggregates_activity_per_configuration():
+    repository = MemoryRepository()
+    seed = example_configuration()
+    repository.ensure_seed(seed)
+    other = seed.model_copy(update={"simulation_id": "SIM-OTHER"})
+    repository.save_configuration(other)
+    repository.flights.extend(
+        [
+            {
+                "simulation_id": seed.simulation_id,
+                "emitted_at": "2026-10-05T08:00:00Z",
+                "record_valid": True,
+            },
+            {
+                "simulation_id": seed.simulation_id,
+                "emitted_at": "2026-10-05T09:00:00Z",
+                "record_valid": True,
+            },
+            {
+                "simulation_id": seed.simulation_id,
+                "emitted_at": "2026-10-05T10:00:00Z",
+                "record_valid": False,
+            },
+            {
+                "simulation_id": "SIM-OTHER",
+                "emitted_at": "2026-10-05T07:00:00Z",
+                "record_valid": True,
+            },
+        ]
+    )
+
+    response = TestClient(
+        create_app(repository=repository, publisher_factory=NullPublisher)
+    ).get("/api/simulations")
+
+    items = {item["simulation_id"]: item for item in response.json()["items"]}
+    assert response.status_code == 200
+    assert items[seed.simulation_id]["stored_departures"] == 2
+    assert items[seed.simulation_id]["last_emitted_at"] == "2026-10-05T09:00:00Z"
+    assert items["SIM-OTHER"]["stored_departures"] == 1
+    assert items["SIM-OTHER"]["last_emitted_at"] == "2026-10-05T07:00:00Z"
+
+
+def test_creation_rejects_a_zero_delay_threshold():
+    repository = MemoryRepository()
+    repository.ensure_seed(example_configuration())
+    payload = example_configuration().model_dump(mode="json", exclude={"simulation_id", "random_seed"})
+    payload["gates"][0]["delay_threshold_minutes"] = 0
+    client = TestClient(create_app(repository=repository, publisher_factory=NullPublisher))
+
+    response = client.post("/api/configurations", json=payload)
+
+    assert response.status_code == 422
+
+
+def test_creation_maps_duplicate_simulation_id_to_conflict():
+    class DuplicateRepository(MemoryRepository):
+        def save_configuration(self, config):
+            raise DuplicateKeyError("duplicate key")
+
+    repository = DuplicateRepository()
+    repository.ensure_seed(example_configuration())
+    payload = example_configuration().model_dump(
+        mode="json", exclude={"simulation_id", "random_seed"}
+    )
+    client = TestClient(create_app(repository=repository, publisher_factory=NullPublisher))
+
+    response = client.post("/api/configurations", json=payload)
+
+    assert response.status_code == 409
+
+
+def test_startup_publishes_the_seed_configuration_once():
+    class RecordingPublisher:
+        def __init__(self):
+            self.published = []
+
+        def publish_configuration(self, config):
+            self.published.append(config)
+
+        def publish_event(self, event):
+            pass
+
+        def publish_test_message(self, payload, case):
+            pass
+
+        def close(self):
+            pass
+
+    publisher = RecordingPublisher()
+    app = create_app(repository=MemoryRepository(), publisher_factory=lambda: publisher)
+
+    with TestClient(app):
+        pass
+
+    assert [config.simulation_id for config in publisher.published] == ["SIM-01"]
+
+
+def test_startup_survives_a_kafka_publish_failure():
+    def broken_factory():
+        raise RuntimeError("kafka unavailable")
+
+    repository = MemoryRepository()
+    app = create_app(repository=repository, publisher_factory=broken_factory)
+
+    with TestClient(app):
+        pass
+
+    assert repository.get_configuration("SIM-01") is not None

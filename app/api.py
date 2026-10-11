@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
-from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
+from pymongo.errors import ConnectionFailure, DuplicateKeyError, ServerSelectionTimeoutError
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,6 +39,28 @@ def _enriched_flight(flight: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def _publish_seed(publisher_factory, config: SimulationConfig) -> None:
+    """Publish the initial configuration on a best-effort basis.
+
+    The API must keep serving MongoDB data even when Kafka is unavailable,
+    so failures here are recorded as a warning and never abort startup.
+    """
+    publisher = None
+    try:
+        publisher = publisher_factory()
+        publisher.publish_configuration(config)
+    except Exception as error:  # noqa: BLE001 - startup must not depend on Kafka
+        print(f"Aviso: no se pudo publicar la configuración inicial en Kafka: {error}")
+    finally:
+        if publisher is not None:
+            close = getattr(publisher, "close", None)
+            if close is not None:
+                try:
+                    close()
+                except Exception as error:  # noqa: BLE001
+                    print(f"Aviso: fallo al cerrar el productor del seed: {error}")
+
+
 def create_app(
     repository: Repository | None = None,
     publisher_factory=None,
@@ -67,7 +89,9 @@ def create_app(
             ensure_indexes = getattr(repository, "ensure_indexes", None)
             if ensure_indexes is not None:
                 await asyncio.to_thread(ensure_indexes)
-            await asyncio.to_thread(repository.ensure_seed, example_configuration())
+            seed = example_configuration()
+            await asyncio.to_thread(repository.ensure_seed, seed)
+            await asyncio.to_thread(_publish_seed, publisher_factory, seed)
             yield
         finally:
             if manager.status.state in {"running", "stopping"}:
@@ -100,13 +124,12 @@ def create_app(
         limit: int = Query(default=100, ge=1, le=500),
         offset: int = Query(default=0, ge=0),
     ) -> dict[str, Any]:
-        configurations = await asyncio.to_thread(repository.list_configurations)
+        configurations, total = await asyncio.to_thread(
+            repository.list_configurations, offset, limit
+        )
         return {
-            "items": [
-                config.model_dump(mode="json")
-                for config in configurations[offset : offset + limit]
-            ],
-            "total": len(configurations),
+            "items": [config.model_dump(mode="json") for config in configurations],
+            "total": total,
             "limit": limit,
             "offset": offset,
         }
@@ -116,26 +139,29 @@ def create_app(
         limit: int = Query(default=100, ge=1, le=500),
         offset: int = Query(default=0, ge=0),
     ) -> dict[str, Any]:
-        configurations = await asyncio.to_thread(repository.list_configurations)
+        configurations, total = await asyncio.to_thread(
+            repository.list_configurations, offset, limit
+        )
+        activity = await asyncio.to_thread(
+            repository.simulation_activity,
+            [config.simulation_id for config in configurations],
+        )
         items = []
-        for config in configurations[offset : offset + limit]:
-            events, total = await asyncio.to_thread(
-                repository.list_flights, config.simulation_id, 0, 1
-            )
-            latest = events[0].get("emitted_at") if events else None
+        for config in configurations:
+            metrics = activity.get(config.simulation_id, {})
             items.append(
                 {
                     "simulation_id": config.simulation_id,
                     "name": config.name,
-                    "last_emitted_at": latest,
-                    "stored_departures": total,
+                    "last_emitted_at": metrics.get("last_emitted_at"),
+                    "stored_departures": metrics.get("stored_departures", 0),
                     "partial": manager.status.simulation_id == config.simulation_id
                     and manager.status.state in {"running", "stopping"},
                 }
             )
         return {
             "items": items,
-            "total": len(configurations),
+            "total": total,
             "limit": limit,
             "offset": offset,
         }
@@ -161,16 +187,14 @@ def create_app(
         config = SimulationConfig.model_validate(payload)
         try:
             await asyncio.to_thread(repository.save_configuration, config)
-        except Exception as error:
-            if error.__class__.__name__ == "DuplicateKeyError":
-                raise HTTPException(
-                    status_code=409, detail="simulation_id ya existe"
-                ) from error
-            if isinstance(error, (ServerSelectionTimeoutError, ConnectionFailure)):
-                raise HTTPException(
-                    status_code=503, detail="MongoDB no disponible"
-                ) from error
-            raise
+        except DuplicateKeyError as error:
+            raise HTTPException(
+                status_code=409, detail="simulation_id ya existe"
+            ) from error
+        except (ServerSelectionTimeoutError, ConnectionFailure) as error:
+            raise HTTPException(
+                status_code=503, detail="MongoDB no disponible"
+            ) from error
         return config.model_dump(mode="json")
 
     @app.get("/api/simulations/{simulation_id}/summary")

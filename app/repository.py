@@ -48,11 +48,17 @@ class MongoRepository:
             upsert=True,
         )
 
-    def list_configurations(self) -> list[SimulationConfig]:
+    def list_configurations(
+        self, skip: int = 0, limit: int | None = None
+    ) -> tuple[list[SimulationConfig], int]:
+        total = self.configurations.count_documents({})
+        cursor = self.configurations.find().sort("simulation_id", ASCENDING).skip(skip)
+        if limit is not None:
+            cursor = cursor.limit(limit)
         return [
             SimulationConfig.model_validate(self._without_id(document))
-            for document in self.configurations.find().sort("simulation_id", ASCENDING)
-        ]
+            for document in cursor
+        ], total
 
     def get_configuration(self, simulation_id: str) -> SimulationConfig | None:
         document = self.configurations.find_one({"simulation_id": simulation_id})
@@ -60,6 +66,38 @@ class MongoRepository:
 
     def save_configuration(self, config: SimulationConfig) -> None:
         self.configurations.insert_one(config.model_dump(mode="python"))
+
+    def simulation_activity(
+        self, simulation_ids: list[str]
+    ) -> dict[str, dict[str, Any]]:
+        if not simulation_ids:
+            return {}
+        cursor = self.flights.aggregate(
+            [
+                {
+                    "$match": {
+                        "simulation_id": {"$in": simulation_ids},
+                        "record_valid": True,
+                    }
+                },
+                {
+                    "$group": {
+                        "_id": "$simulation_id",
+                        "stored_departures": {"$sum": 1},
+                        "last_emitted_at": {"$max": "$emitted_at"},
+                    }
+                },
+                {
+                    "$project": {
+                        "_id": 0,
+                        "simulation_id": "$_id",
+                        "stored_departures": 1,
+                        "last_emitted_at": 1,
+                    }
+                },
+            ]
+        )
+        return {document["simulation_id"]: document for document in cursor}
 
     def list_flights(self, simulation_id: str, skip: int, limit: int):
         query = {"simulation_id": simulation_id, "record_valid": True}

@@ -18,7 +18,7 @@ class Gate(BaseModel):
     gate_id: Literal["G1", "G2", "G3", "G4", "G5"]
     name: NonEmpty
     terminal_id: Literal["T1", "T2", "T3", "T4", "T5"]
-    delay_threshold_minutes: int = Field(ge=0)
+    delay_threshold_minutes: int = Field(ge=1)
 
 
 class Airline(BaseModel):

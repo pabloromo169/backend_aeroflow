@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from app.models import SimulationConfig
@@ -16,14 +16,37 @@ class MemoryRepository:
     def ensure_seed(self, config: SimulationConfig) -> None:
         self.configurations.setdefault(config.simulation_id, config)
 
-    def list_configurations(self) -> list[SimulationConfig]:
-        return sorted(self.configurations.values(), key=lambda item: item.simulation_id)
+    def list_configurations(
+        self, skip: int = 0, limit: int | None = None
+    ) -> tuple[list[SimulationConfig], int]:
+        ordered = sorted(self.configurations.values(), key=lambda item: item.simulation_id)
+        page = ordered[skip:] if limit is None else ordered[skip : skip + limit]
+        return page, len(ordered)
 
     def get_configuration(self, simulation_id: str) -> SimulationConfig | None:
         return self.configurations.get(simulation_id)
 
     def save_configuration(self, config: SimulationConfig) -> None:
         self.configurations[config.simulation_id] = config
+
+    def simulation_activity(
+        self, simulation_ids: list[str]
+    ) -> dict[str, dict[str, Any]]:
+        activity: dict[str, dict[str, Any]] = {}
+        for flight in self.flights:
+            simulation_id = flight.get("simulation_id")
+            if simulation_id not in simulation_ids or flight.get("record_valid") is not True:
+                continue
+            entry = activity.setdefault(
+                simulation_id, {"stored_departures": 0, "last_emitted_at": None}
+            )
+            entry["stored_departures"] += 1
+            emitted_at = flight.get("emitted_at")
+            if entry["last_emitted_at"] is None or _as_utc(emitted_at) >= _as_utc(
+                entry["last_emitted_at"]
+            ):
+                entry["last_emitted_at"] = emitted_at
+        return activity
 
     def list_flights(self, simulation_id: str, skip: int, limit: int):
         flights = [

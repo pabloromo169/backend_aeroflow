@@ -18,15 +18,16 @@ def main() -> None:
         settings.kafka_configuration_topic,
         settings.kafka_flights_topic,
     ]
-    consumer = Consumer(
-        {
-            "bootstrap.servers": settings.kafka_bootstrap_servers,
-            "security.protocol": settings.kafka_security_protocol,
-            "group.id": f"aeroflow-inspector-{uuid.uuid4().hex[:12]}",
-            "auto.offset.reset": "earliest",
-            "enable.auto.commit": False,
-        }
-    )
+    consumer_options = {
+        "bootstrap.servers": settings.kafka_bootstrap_servers,
+        "security.protocol": settings.kafka_security_protocol,
+        "group.id": f"aeroflow-inspector-{uuid.uuid4().hex[:12]}",
+        "auto.offset.reset": "earliest",
+        "enable.auto.commit": False,
+    }
+    if settings.kafka_ssl_ca_location:
+        consumer_options["ssl.ca.location"] = settings.kafka_ssl_ca_location
+    consumer = Consumer(consumer_options)
     consumer.subscribe(topics)
     print(f"Escuchando: {', '.join(topics)}. Ctrl+C para salir.", flush=True)
     try:

@@ -15,7 +15,7 @@ Copy-Item .env.example .env
 
 Para instalar las dependencias de prueba se usa `requirements-dev.txt`; las versiones resueltas en el entorno actual también se registran en `requirements-lock.txt`.
 
-Edita `.env` para indicar las direcciones de Kafka y MongoDB. Los valores por defecto apuntan al servidor comunicado: Kafka en `kafka.monolith.dynamic-dns.net:443` con SSL y MongoDB en `mongodb.monolith.dynamic-dns.net:443` con TLS y `authSource=admin`. Introduce las credenciales MongoDB únicamente en `MONGODB_USERNAME` y `MONGODB_PASSWORD` locales; no las pongas en el URI, el código ni el repositorio. Si el certificado de Kafka usa una CA privada, especifica su archivo PEM con `KAFKA_SSL_CA_LOCATION`. NiFi es una interfaz de navegador en `https://nifi.monolith.dynamic-dns.net`; este backend no invoca directamente su interfaz. El API crea los índices necesarios e inserta `SIM-01` únicamente si aún no existe.
+Edita `.env` para indicar las direcciones de Kafka y MongoDB. Los valores por defecto apuntan al servidor comunicado: Kafka en `kafka.monolith.dynamic-dns.net:443` con SSL y MongoDB en `mongodb.monolith.dynamic-dns.net:443` con TLS y `authSource=admin`. Introduce las credenciales MongoDB únicamente en `MONGODB_USERNAME` y `MONGODB_PASSWORD` locales; no las pongas en el URI, el código ni el repositorio. Si el certificado de Kafka usa una CA privada, especifica su archivo PEM con `KAFKA_SSL_CA_LOCATION`; tanto el productor como el consumidor de inspección la reutilizan. NiFi es una interfaz de navegador en `https://nifi.monolith.dynamic-dns.net`; este backend no invoca directamente su interfaz. El API crea los índices necesarios, inserta `SIM-01` únicamente si aún no existe y publica esa configuración inicial en `aeroflow.configuracion` para que NiFi la persista; si Kafka no responde en el arranque, el API arranca igual y solo registra un aviso.
 
 ## Arrancar
 
@@ -75,7 +75,7 @@ Las credenciales de MongoDB permanecen en el backend. CORS acepta todos los orí
 ## Eventos Kafka
 
 - Vuelos: `aeroflow.vuelos`, JSON del contrato del documento, clave Kafka `aircraft_id`, cabeceras `message_type=flight` y `simulation_id`.
-- Configuración: `aeroflow.configuracion`, se publica una vez al inicio de cada ejecución, con clave `simulation_id` y cabeceras identificativas.
+- Configuración: `aeroflow.configuracion`, se publica una vez al inicio de cada ejecución, con clave `simulation_id` y cabeceras identificativas. La configuración inicial `SIM-01` también se publica al arrancar el API para que NiFi la persista; NiFi debe insertar la configuración con un upsert idempotente por `simulation_id`, ya que el backend guarda la misma configuración de forma directa.
 - Los IDs de evento y operación se derivan de la simulación y posición para repetir el mismo conjunto. Reejecutar el mismo `simulation_id` publica desde el principio; el índice único de `event_id` en MongoDB debe volver idempotente la ingestión.
 - Las operaciones generadas se ordenan por salida efectiva y se evita el solapamiento del mismo avión. Kafka garantiza orden únicamente dentro de una partición. Con clave por avión, no debe suponerse orden global del topic entre particiones.
 - Al detener, el productor espera confirmación de Kafka para el mensaje en curso. Los fallos definitivos marcan la ejecución `failed`; no se saltan silenciosamente.
@@ -85,7 +85,7 @@ Las credenciales de MongoDB permanecen en el backend. CORS acepta todos los orí
 
 El seed tiene siete días simulados, cinco puertas G1–G5 enlazadas uno a uno a T1–T5, 10 compañías, 50 aviones (cinco por compañía), cinco modelos (cada combinación de compañía/modelo tiene una flota equilibrada), destinos didácticos y 1060 operaciones. El 5% fijo de operaciones de muestra se distribuye entre errores detectables: campo obligatorio ausente, destino desconocido, umbral negativo o una hora efectiva declarada anterior a la programada. Esos errores mantienen `record_valid=true` para que NiFi haga la validación real.
 
-La misma configuración y semilla generan iguales horarios, retrasos, aviones, identificadores y defectos. El campo `emitted_at` se reemplaza durante la publicación por la hora real UTC, por lo que puede variar entre repeticiones. `simulation_days` debe ser al menos siete; volumen y probabilidad de retraso se ajustan por perfiles de puerta, destino y franja. No se configura comportamiento distinto por compañía.
+La misma configuración y semilla generan iguales horarios, retrasos, aviones, identificadores y defectos. El campo `emitted_at` se reemplaza durante la publicación por la hora real UTC, por lo que puede variar entre repeticiones. `simulation_days` debe ser al menos siete y los umbrales de puerta deben ser positivos (mínimo 1 minuto); volumen y probabilidad de retraso se ajustan por perfiles de puerta, destino y franja. No se configura comportamiento distinto por compañía.
 
 Los formularios de configuración requieren los catálogos y listas descritos en el JSON de `SIM-01`; pueden omitir `simulation_id` y `random_seed` para que los genere el backend, o especificar una semilla para reproducir los datos. Cada configuración guardada queda en `operativos` y se conserva para resultados históricos.
 
