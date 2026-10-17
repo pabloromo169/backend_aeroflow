@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import secrets
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -18,6 +19,8 @@ from app.ports import EventPublisher, Repository
 from app.seed import example_configuration
 from app.settings import Settings
 from app.simulation import SimulationManager
+
+logger = logging.getLogger(__name__)
 
 
 def _timestamp(value: Any) -> datetime:
@@ -50,7 +53,7 @@ def _publish_seed(publisher_factory, config: SimulationConfig) -> None:
         publisher = publisher_factory()
         publisher.publish_configuration(config)
     except Exception as error:  # noqa: BLE001 - startup must not depend on Kafka
-        print(f"Aviso: no se pudo publicar la configuración inicial en Kafka: {error}")
+        logger.warning("No se pudo publicar la configuración inicial en Kafka: %s", error)
     finally:
         if publisher is not None:
             close = getattr(publisher, "close", None)
@@ -58,7 +61,7 @@ def _publish_seed(publisher_factory, config: SimulationConfig) -> None:
                 try:
                     close()
                 except Exception as error:  # noqa: BLE001
-                    print(f"Aviso: fallo al cerrar el productor del seed: {error}")
+                    logger.warning("Fallo al cerrar el productor del seed: %s", error)
 
 
 def create_app(
@@ -357,7 +360,7 @@ def create_app(
             duplicate_payload["record_valid"] = True
             encoded_duplicate = json.dumps(duplicate_payload).encode()
             await asyncio.to_thread(
-            publisher.publish_test_message, encoded_duplicate, "duplicate_event"
+                publisher.publish_test_message, encoded_duplicate, "duplicate_event"
             )
             await asyncio.to_thread(
                 publisher.publish_test_message, encoded_duplicate, "duplicate_event"

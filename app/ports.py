@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any, Protocol
 
 from app.models import FlightEvent, SimulationConfig
@@ -40,9 +39,3 @@ class EventPublisher(Protocol):
     def publish_test_message(self, payload: bytes, case: str) -> None: ...
 
     def close(self) -> None: ...
-
-
-class ApplicationServices(Protocol):
-    repository: Repository
-    publisher_factory: Any
-    manager: Any
