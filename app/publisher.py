@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import threading
 import time
 from typing import Any
 
@@ -11,6 +12,18 @@ from app.settings import Settings
 
 
 class KafkaPublisher:
+    """Publica eventos en Kafka usando un pool de productores.
+
+    Se mantienen varios clientes ``confluent_kafka.Producer`` (por defecto 5)
+    que escriben en el **mismo topic**. Cada mensaje se envía, por turnos
+    (round-robin), al siguiente productor del pool, repartiendo la carga de
+    publicación entre todos ellos.
+
+    La publicación es síncrona (espera la confirmación de Kafka antes de
+    continuar), de modo que el orden de las llamadas se conserva aunque el
+    mensaje viaje por productores distintos.
+    """
+
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         producer_options = {
@@ -22,7 +35,21 @@ class KafkaPublisher:
         }
         if settings.kafka_ssl_ca_location:
             producer_options["ssl.ca.location"] = settings.kafka_ssl_ca_location
-        self.producer = Producer(producer_options)
+
+        self._producer_count = max(1, settings.kafka_producer_pool_size)
+        self.producers: list[Producer] = []
+        for index in range(self._producer_count):
+            options = dict(producer_options)
+            options["client.id"] = f"aeroflow-producer-{index + 1}"
+            self.producers.append(Producer(options))
+        self._next_index = 0
+        self._lock = threading.Lock()
+
+    def _next_producer(self) -> Producer:
+        with self._lock:
+            producer = self.producers[self._next_index]
+            self._next_index = (self._next_index + 1) % self._producer_count
+            return producer
 
     def publish_configuration(self, config: SimulationConfig) -> None:
         self._publish(
@@ -63,6 +90,7 @@ class KafkaPublisher:
         )
 
     def _publish(self, **message: Any) -> None:
+        producer = self._next_producer()
         last_error: KafkaError | None = None
         for attempt in range(self.settings.kafka_retries + 1):
             deadline = time.monotonic() + self.settings.kafka_delivery_timeout_seconds + 5
@@ -73,17 +101,17 @@ class KafkaPublisher:
 
             while True:
                 try:
-                    self.producer.produce(**message, on_delivery=callback)
+                    producer.produce(**message, on_delivery=callback)
                     break
                 except BufferError:
                     if time.monotonic() >= deadline:
                         raise TimeoutError("Timeout esperando espacio en el buffer Kafka")
-                    self.producer.poll(0.1)
+                    producer.poll(0.1)
 
             while not delivered:
                 if time.monotonic() >= deadline:
                     raise TimeoutError("Timeout esperando confirmación de entrega Kafka")
-                self.producer.poll(0.1)
+                producer.poll(0.1)
             if delivered[0] is None:
                 return
             last_error = delivered[0]
@@ -92,4 +120,5 @@ class KafkaPublisher:
         raise RuntimeError(f"Error al publicar en Kafka: {last_error}")
 
     def close(self) -> None:
-        self.producer.flush(self.settings.kafka_delivery_timeout_seconds)
+        for producer in self.producers:
+            producer.flush(self.settings.kafka_delivery_timeout_seconds)

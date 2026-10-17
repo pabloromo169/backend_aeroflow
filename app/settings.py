@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     kafka_configuration_topic: str = "aeroflow.configuracion"
     kafka_delivery_timeout_seconds: int = 30
     kafka_retries: int = 3
+    kafka_producer_pool_size: int = 5
     cors_origins: str = "*"
 
     @property
