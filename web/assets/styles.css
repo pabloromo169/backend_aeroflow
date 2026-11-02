@@ -464,7 +464,25 @@ input {
   border: 1px solid var(--af-border);
   border-radius: var(--af-radius);
   background: var(--af-surface);
+  color: inherit;
   text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.af-gate:hover {
+  border-color: #b8c6d2;
+  box-shadow: 0 6px 18px rgb(13 38 56 / 8%);
+}
+
+.af-gate.is-filtered {
+  border-color: var(--af-navy);
+  box-shadow: inset 0 0 0 1px var(--af-navy);
+}
+
+.af-gate.is-filtered .af-gate__percent::after {
+  content: " · filtro activo";
+  color: var(--af-navy);
 }
 
 .af-gate__head {
@@ -547,6 +565,50 @@ input {
 
 .af-chart {
   padding: 20px;
+}
+
+.af-chart__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 220px;
+}
+
+.af-chart__grid {
+  stroke: #e7edf3;
+  stroke-width: 1;
+}
+
+.af-chart__axis {
+  stroke: #c4d0da;
+  stroke-width: 1;
+}
+
+.af-chart__tick {
+  fill: var(--af-muted);
+  font-family: var(--af-font);
+  font-size: 11px;
+}
+
+.af-chart__segment--base {
+  fill: #9fb3c8;
+}
+
+.af-chart__segment--over {
+  fill: var(--af-warn);
+}
+
+.af-chart__bar:hover .af-chart__segment--base {
+  fill: #7f97ae;
+}
+
+.af-chart__bar:hover .af-chart__segment--over {
+  fill: #92400e;
+}
+
+.af-legend__note {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
 }
 
 .af-chart__placeholder {

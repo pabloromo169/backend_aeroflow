@@ -51,7 +51,6 @@ export async function fetchJson(path, { signal, timeout = REQUEST_TIMEOUT_MS } =
     signal?.removeEventListener("abort", forwardAbort);
   }
 }
-
 export async function postJson(path, payload) {
   const response = await fetch(`/api${path}`, {
     method: "POST",

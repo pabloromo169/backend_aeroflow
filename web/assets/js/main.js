@@ -2,7 +2,9 @@ import { startSimulation, stopSimulation } from "./api.js";
 import { createPoller } from "./polling.js";
 import { announce, renderShell } from "./render.js";
 import { createConfigPanel } from "./config-panel.js";
+import { createChart } from "./charts.js";
 import { initDialogs } from "./dialogs.js";
+import { createGatePier, createMetrics } from "./metrics.js";
 import {
   chooseSimulation,
   createState,
@@ -13,7 +15,8 @@ import {
 } from "./state.js";
 
 const refs = {
-  state: null,  simulationSelect: document.querySelector("#simulation-select"),
+  state: null,
+  simulationSelect: document.querySelector("#simulation-select"),
   statusPill: document.querySelector("#status-pill"),
   lastUpdate: document.querySelector("#last-update"),
   connectionBanner: document.querySelector("#connection-banner"),
@@ -51,11 +54,49 @@ const configPanel = createConfigPanel({
   toast: dialogs.toast,
 });
 
+const metrics = createMetrics({
+  container: document.querySelector("#metrics"),
+});
+
+let selectedGate = null;
+
+const gatePier = createGatePier({
+  container: document.querySelector("#gates"),
+  onGateSelect: (gateId) => {
+    selectedGate = selectedGate === gateId ? null : gateId;
+    document
+      .querySelector("#departures-title")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (selectedGate) announce(`Tabla filtrada por la puerta ${selectedGate}`, refs);
+    else announce("Filtro de puerta eliminado", refs);
+    gatePier.render(state, selectedGate);
+  },
+});
+
+const chart = createChart({
+  container: document.querySelector("#evolution"),
+  onIntervalChange: (interval) => {
+    if (state.interval === interval) return;
+    state.interval = interval;
+    writeUrl(state, { push: true });
+    syncIntervalButtons(interval);
+    announce(`Evolución en ${interval === "hour" ? "horas" : "días"}`, refs);
+    void poller.refresh();
+  },
+});
+
+const intervalButtons = [...document.querySelectorAll(".af-segmented__button")];
+chart.bindInterval(intervalButtons);
+syncIntervalButtons(state.interval);
+
 const poller = createPoller({
   state,
   onChange: (next) => {
     renderShell(next, refs);
     renderActions(next);
+    metrics.render(next);
+    gatePier.render(next, selectedGate);
+    chart.render(next, next.interval);
     configPanel.reload();
     document.title = pageTitle(next);
   },
@@ -150,6 +191,14 @@ function pageTitle(next) {
   return item
     ? `${item.simulation_id} · AeroFlow · Centro de control`
     : "AeroFlow · Centro de control";
+}
+
+function syncIntervalButtons(interval) {
+  for (const button of document.querySelectorAll(".af-segmented__button")) {
+    const active = button.dataset.interval === interval;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  }
 }
 
 window.addEventListener("popstate", () => {

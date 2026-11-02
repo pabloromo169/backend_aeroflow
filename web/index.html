@@ -192,8 +192,8 @@
             <p class="af-section__subtitle">Hora efectiva en UTC.</p>
           </div>
           <div class="af-segmented" role="group" aria-label="Intervalo de la gráfica">
-            <button class="af-segmented__button is-active" type="button" disabled>Hora</button>
-            <button class="af-segmented__button" type="button" disabled>Día</button>
+            <button class="af-segmented__button is-active" type="button" data-interval="hour" aria-pressed="true">Hora</button>
+            <button class="af-segmented__button" type="button" data-interval="day" aria-pressed="false">Día</button>
           </div>
         </div>
 
@@ -209,6 +209,7 @@
           <div class="af-chart__legend">
             <span class="af-legend__item"><span class="af-legend__swatch af-legend__swatch--base"></span>Bajo umbral</span>
             <span class="af-legend__item"><span class="af-legend__swatch af-legend__swatch--over"></span>Supera umbral</span>
+            <span class="af-legend__note" id="chart-range"></span>
           </div>
         </div>
       </section>
