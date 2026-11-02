@@ -13,7 +13,6 @@ export function createConfigPanel({ refs, dialogs }) {
     if (loadedFor === simulationId) return;
     await load(simulationId);
   }
-
   async function load(simulationId) {
     if (loadingFor === simulationId) return;
     const current = ++requestId;

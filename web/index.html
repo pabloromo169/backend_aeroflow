@@ -217,30 +217,35 @@
       <section class="af-section" aria-labelledby="departures-title">
         <div class="af-section__head">
           <div>
-            <h2 class="af-section__title" id="departures-title">Últimas salidas</h2>
+            <h2 class="af-section__title" id="departures-title">Últimas salidas <span class="af-section__count" id="departures-total"></span></h2>
             <p class="af-section__subtitle">Los registros más recientes almacenados en MongoDB.</p>
           </div>
+          <p class="af-chip" id="gate-filter-chip" hidden>
+            <span id="gate-filter-label"></span>
+            <button class="af-chip__clear" type="button" id="gate-filter-clear" aria-label="Quitar filtro de puerta">×</button>
+          </p>
         </div>
 
         <div class="af-card af-table-card">
           <div class="af-filters" aria-label="Filtros de la página actual">
+            <p class="af-filters__scope">Filtros sobre esta página</p>
             <label class="af-field">
               <span class="af-field__label">Puerta</span>
-              <select class="af-select" disabled><option>Todas</option></select>
+              <select class="af-select" id="filter-gate"><option value="">Todas</option></select>
             </label>
             <label class="af-field">
               <span class="af-field__label">Compañía</span>
-              <select class="af-select" disabled><option>Todas</option></select>
+              <select class="af-select" id="filter-airline"><option value="">Todas</option></select>
             </label>
             <label class="af-field">
               <span class="af-field__label">Destino</span>
-              <select class="af-select" disabled><option>Todos</option></select>
+              <select class="af-select" id="filter-destination"><option value="">Todos</option></select>
             </label>
             <label class="af-check">
-              <input type="checkbox" disabled />
+              <input type="checkbox" id="filter-over" />
               <span>Solo superaciones</span>
             </label>
-            <button class="af-button af-button--ghost" type="button" disabled>Limpiar</button>
+            <button class="af-button af-button--ghost" type="button" id="filters-clear">Limpiar</button>
           </div>
 
           <div class="af-table-wrap">
@@ -263,69 +268,29 @@
                 </tr>
               </thead>
               <tbody id="departures-body" aria-busy="true">
-                <tr>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                <tr class="af-table__placeholder">
+                  <td colspan="9"><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
                 </tr>
-                <tr>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                <tr class="af-table__placeholder">
+                  <td colspan="9"><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
                 </tr>
-                <tr>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                <tr class="af-table__placeholder">
+                  <td colspan="9"><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
                 </tr>
-                <tr>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                <tr class="af-table__placeholder">
+                  <td colspan="9"><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
                 </tr>
-                <tr>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
-                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                <tr class="af-table__placeholder">
+                  <td colspan="9"><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           <div class="af-pagination">
-            <button class="af-button af-button--ghost" type="button" disabled>Anterior</button>
-            <span class="af-pagination__status">Cargando página…</span>
-            <button class="af-button af-button--ghost" type="button" disabled>Siguiente</button>
+            <button class="af-button af-button--ghost" type="button" id="page-prev" disabled>Anterior</button>
+            <span class="af-pagination__status" id="page-status">Cargando página…</span>
+            <button class="af-button af-button--ghost" type="button" id="page-next" disabled>Siguiente</button>
           </div>
         </div>
       </section>
@@ -376,8 +341,8 @@
             type="button"
             role="tab"
             aria-selected="false"
-            disabled
-            title="Disponible al completar el formulario de alta"
+            aria-controls="drawer-new"
+            id="tab-new"
           >
             Nueva simulación
           </button>
@@ -401,14 +366,109 @@
               <pre class="af-json" id="config-json"></pre>
             </details>
           </div>
+
+          <form class="af-form" id="drawer-new" role="tabpanel" aria-labelledby="tab-new" hidden novalidate>
+            <div class="af-banner af-banner--error af-banner--inline" id="form-error" role="alert" hidden>
+              <span class="af-banner__icon" aria-hidden="true">!</span>
+              <p class="af-banner__text"></p>
+            </div>
+
+            <fieldset class="af-fieldset">
+              <legend>Identidad y generación</legend>
+              <label class="af-field">
+                <span class="af-field__label">Nombre</span>
+                <input class="af-input" id="form-name" name="name" type="text" required />
+                <span class="af-field__error" data-error-for="name"></span>
+              </label>
+              <div class="af-field-row">
+                <label class="af-field">
+                  <span class="af-field__label">Inicio (UTC)</span>
+                  <input class="af-input" id="form-start" name="simulation_start" type="datetime-local" required />
+                  <span class="af-field__error" data-error-for="simulation_start"></span>
+                </label>
+                <label class="af-field">
+                  <span class="af-field__label">Días</span>
+                  <input class="af-input" id="form-days" name="simulation_days" type="number" min="7" max="31" step="1" required />
+                  <span class="af-field__error" data-error-for="simulation_days"></span>
+                </label>
+              </div>
+              <div class="af-field-row">
+                <label class="af-field">
+                  <span class="af-field__label">Operaciones</span>
+                  <input class="af-input" id="form-operations" name="total_operations" type="number" min="100" max="100000" step="1" required />
+                  <span class="af-field__error" data-error-for="total_operations"></span>
+                  <span class="af-field__hint" id="form-operations-hint"></span>
+                </label>
+                <label class="af-field">
+                  <span class="af-field__label">Intervalo de publicación (ms)</span>
+                  <input class="af-input" id="form-interval" name="publish_interval_ms" type="number" min="0" max="60000" step="1" required />
+                  <span class="af-field__error" data-error-for="publish_interval_ms"></span>
+                </label>
+              </div>
+              <label class="af-field">
+                <span class="af-field__label">Semilla</span>
+                <span class="af-field-row">
+                  <input class="af-input" id="form-seed" name="random_seed" type="number" min="0" step="1" />
+                  <button class="af-button af-button--ghost" type="button" id="form-seed-random">Generar nueva</button>
+                </span>
+                <span class="af-field__hint">Vacía el campo para que el backend asigne una semilla aleatoria.</span>
+                <span class="af-field__error" data-error-for="random_seed"></span>
+              </label>
+            </fieldset>
+
+            <fieldset class="af-fieldset">
+              <legend>Puertas</legend>
+              <p class="af-field__hint">Cada puerta debe usar un terminal distinto; al repetir uno, se intercambia con la puerta que lo tenía.</p>
+              <div class="af-table-wrap">
+                <table class="af-table af-table--compact">
+                  <thead>
+                    <tr>
+                      <th scope="col">Puerta</th>
+                      <th scope="col">Terminal</th>
+                      <th scope="col">Umbral (min)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="form-gates"></tbody>
+                </table>
+              </div>
+            </fieldset>
+
+            <details class="af-details af-details--form" id="form-advanced">
+              <summary>Perfiles de generación y vista previa</summary>
+              <p class="af-drawer__note" id="form-profiles-summary"></p>
+
+              <div class="af-field-row">
+                <label class="af-field">
+                  <span class="af-field__label">Probabilidad base de retraso</span>
+                  <input class="af-input" id="form-delay-probability" type="number" min="0" max="1" step="0.01" required />
+                </label>
+                <label class="af-field">
+                  <span class="af-field__label">Retraso máximo sobre umbral (min)</span>
+                  <input class="af-input" id="form-max-delay" type="number" min="1" max="1440" step="1" required />
+                </label>
+              </div>
+
+              <div class="af-profile-grid" id="form-profiles"></div>
+
+              <p class="af-drawer__note" id="form-readonly"></p>
+
+              <details class="af-details">
+                <summary>JSON que se enviará</summary>
+                <pre class="af-json" id="form-json"></pre>
+              </details>
+            </details>
+          </form>
         </div>
 
         <footer class="af-drawer__footer">
           <button class="af-button af-button--ghost" type="button" id="drawer-dismiss">
             Cerrar
           </button>
-          <button class="af-button af-button--accent" type="button" disabled title="Disponible con el formulario de alta">
+          <button class="af-button af-button--ghost" type="button" id="drawer-duplicate">
             Duplicar como nueva
+          </button>
+          <button class="af-button af-button--accent" type="button" id="drawer-save" hidden>
+            Guardar
           </button>
         </footer>
       </div>

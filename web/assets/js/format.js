@@ -73,7 +73,8 @@ export function plural(count, singular, pluralForm) {
 
 export function datetimeLocalToUtcIso(value) {
   if (!value) return null;
-  const parsed = new Date(`${value}:00Z`);
+  const normalized = value.length === 16 ? `${value}:00Z` : `${value}Z`;
+  const parsed = new Date(normalized);
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 

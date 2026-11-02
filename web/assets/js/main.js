@@ -2,9 +2,11 @@ import { startSimulation, stopSimulation } from "./api.js";
 import { createPoller } from "./polling.js";
 import { announce, renderShell } from "./render.js";
 import { createConfigPanel } from "./config-panel.js";
+import { createConfigForm } from "./config-form.js";
 import { createChart } from "./charts.js";
 import { initDialogs } from "./dialogs.js";
 import { createGatePier, createMetrics } from "./metrics.js";
+import { createTable } from "./table.js";
 import {
   chooseSimulation,
   createState,
@@ -25,6 +27,7 @@ const refs = {
   refreshButton: document.querySelector("#refresh-button"),
   configButton: document.querySelector("#config-button"),
   runButton: document.querySelector("#run-button"),
+  drawer: document.querySelector("#config-drawer"),
   drawerLoading: document.querySelector("#drawer-loading"),
   drawerCurrent: document.querySelector("#drawer-current"),
   drawerError: document.querySelector("#drawer-error"),
@@ -33,6 +36,39 @@ const refs = {
   configGates: document.querySelector("#config-gates"),
   configCatalogs: document.querySelector("#config-catalogs"),
   configJson: document.querySelector("#config-json"),
+  drawer: document.querySelector("#config-drawer"),
+  tabCurrent: document.querySelector("#tab-current"),
+  tabNew: document.querySelector("#tab-new"),
+  drawerDuplicate: document.querySelector("#drawer-duplicate"),
+  drawerSave: document.querySelector("#drawer-save"),
+  formNew: document.querySelector("#drawer-new"),
+  formError: document.querySelector("#form-error"),
+  formName: document.querySelector("#form-name"),
+  formStart: document.querySelector("#form-start"),
+  formDays: document.querySelector("#form-days"),
+  formOperations: document.querySelector("#form-operations"),
+  formOperationsHint: document.querySelector("#form-operations-hint"),
+  formInterval: document.querySelector("#form-interval"),
+  formSeed: document.querySelector("#form-seed"),
+  formSeedRandom: document.querySelector("#form-seed-random"),
+  formGates: document.querySelector("#form-gates"),
+  formAdvanced: document.querySelector("#form-advanced"),
+  formProfilesSummary: document.querySelector("#form-profiles-summary"),
+  formProfiles: document.querySelector("#form-profiles"),
+  formDelayProbability: document.querySelector("#form-delay-probability"),
+  formMaxDelay: document.querySelector("#form-max-delay"),
+  formReadonly: document.querySelector("#form-readonly"),
+  formJson: document.querySelector("#form-json"),
+  departuresBody: document.querySelector("#departures-body"),
+  departuresTotal: document.querySelector("#departures-total"),
+  filterGate: document.querySelector("#filter-gate"),
+  filterAirline: document.querySelector("#filter-airline"),
+  filterDestination: document.querySelector("#filter-destination"),
+  filterOver: document.querySelector("#filter-over"),
+  filtersClear: document.querySelector("#filters-clear"),
+  pagePrev: document.querySelector("#page-prev"),
+  pageNext: document.querySelector("#page-next"),
+  pageStatus: document.querySelector("#page-status"),
   blocks: {
     summary: document.querySelector("#metrics"),
     flights: document.querySelector("#departures-body"),
@@ -44,14 +80,32 @@ const state = createState();
 refs.state = state;
 
 const dialogs = initDialogs({
-  onConfigOpen: () => markPanel("config"),
-  onConfigClose: () => markPanel("monitor"),
+  onConfigOpen: () => {
+    markPanel("config");
+    configForm.showTab("current");
+  },
+  onConfigClose: () => {
+    markPanel("monitor");
+    configForm.reset();
+  },
 });
 
 const configPanel = createConfigPanel({
   refs,
   dialogs,
-  toast: dialogs.toast,
+});
+
+const configForm = createConfigForm({
+  refs,
+  dialogs,
+  onCreated: (created) => {
+    refs.drawer.dataset.dirty = "false";
+    dialogs.closeDrawer({ force: true });
+    selectSimulation(state, created.simulation_id);
+    writeUrl(state, { push: true });
+    announce(`Configuración ${created.simulation_id} creada`, refs);
+    void poller.refresh();
+  },
 });
 
 const metrics = createMetrics({
@@ -64,6 +118,7 @@ const gatePier = createGatePier({
   container: document.querySelector("#gates"),
   onGateSelect: (gateId) => {
     selectedGate = selectedGate === gateId ? null : gateId;
+    table.setGate(selectedGate);
     document
       .querySelector("#departures-title")
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -89,6 +144,23 @@ const intervalButtons = [...document.querySelectorAll(".af-segmented__button")];
 chart.bindInterval(intervalButtons);
 syncIntervalButtons(state.interval);
 
+const table = createTable({
+  refs,
+  onChange: () => table.render(state),
+  onPageChange: (page) => {
+    if (page === state.page) return;
+    state.page = page;
+    writeUrl(state, { push: true });
+    announce(`Página ${page} de salidas`, refs);
+    void poller.refresh();
+  },
+  onClearGate: () => {
+    selectedGate = null;
+    table.setGate(null);
+    gatePier.render(state, selectedGate);
+  },
+});
+
 const poller = createPoller({
   state,
   onChange: (next) => {
@@ -97,7 +169,9 @@ const poller = createPoller({
     metrics.render(next);
     gatePier.render(next, selectedGate);
     chart.render(next, next.interval);
+    table.render(next);
     configPanel.reload();
+    configForm.resetIfNeeded();
     document.title = pageTitle(next);
   },
 });
@@ -180,6 +254,9 @@ function markPanel(panel) {
 
 function handleSimulationChange(simulationId) {
   if (!simulationId || simulationId === state.selectedId) return;
+  selectedGate = null;
+  table.clearFilters();
+  gatePier.render(state, selectedGate);
   selectSimulation(state, simulationId);
   writeUrl(state, { push: true });
   announce(`Simulación ${simulationId} seleccionada`, refs);
@@ -205,6 +282,9 @@ window.addEventListener("popstate", () => {
   const params = new URLSearchParams(window.location.search);
   const next = params.get("sim");
   if (next && next !== state.selectedId) {
+    selectedGate = null;
+    table.clearFilters();
+    gatePier.render(state, selectedGate);
     selectSimulation(state, next);
     void poller.refresh();
   }
