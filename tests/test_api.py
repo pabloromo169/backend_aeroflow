@@ -43,6 +43,30 @@ def test_web_shell_and_assets_are_served_without_shadowing_the_api():
     assert api.json()["total"] == 1
 
 
+def test_security_headers_and_same_origin_writes():
+    repository = MemoryRepository()
+    repository.ensure_seed(example_configuration())
+    client = TestClient(create_app(repository=repository, publisher_factory=NullPublisher))
+
+    page = client.get("/")
+    assert page.headers["x-content-type-options"] == "nosniff"
+    assert page.headers["referrer-policy"] == "no-referrer"
+    assert "fonts.googleapis.com" in page.headers["content-security-policy"]
+    assert "frame-ancestors 'none'" in page.headers["content-security-policy"]
+
+    rejected = client.post(
+        "/api/simulations/stop",
+        headers={"Origin": "https://evil.example", "Host": "testserver"},
+    )
+    assert rejected.status_code == 403
+
+    allowed = client.post(
+        "/api/simulations/stop",
+        headers={"Origin": "http://testserver", "Host": "testserver"},
+    )
+    assert allowed.status_code == 409
+
+
 def test_configuration_creation_assigns_unique_id_and_seed():
     repository = MemoryRepository()
     repository.ensure_seed(example_configuration())

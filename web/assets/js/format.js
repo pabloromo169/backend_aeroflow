@@ -1,7 +1,8 @@
-const numberFormat = new Intl.NumberFormat("es-ES");
+const numberFormat = new Intl.NumberFormat("es-ES", { useGrouping: "always" });
 const decimalFormat = new Intl.NumberFormat("es-ES", {
   minimumFractionDigits: 1,
   maximumFractionDigits: 1,
+  useGrouping: "always",
 });
 
 export function formatNumber(value) {

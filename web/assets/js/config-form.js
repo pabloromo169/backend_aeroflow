@@ -37,8 +37,9 @@ export function createConfigForm({ refs, dialogs, onCreated }) {
 
   refs.tabCurrent?.addEventListener("click", () => showTab("current"));
   refs.tabNew?.addEventListener("click", () => showTab("new"));
-  refs.drawerDuplicate?.addEventListener("click", () => duplicate());
+  refs.drawerDuplicate?.addEventListener("click", () => void duplicate());
   refs.drawerSave?.addEventListener("click", () => void save());
+  refs.configCopy?.addEventListener("click", () => void copyJson());
   refs.formSeedRandom?.addEventListener("click", () => {
     if (refs.formSeed) refs.formSeed.value = "";
     markDirty();
@@ -84,7 +85,6 @@ export function createConfigForm({ refs, dialogs, onCreated }) {
     dirty = true;
     refs.drawer.dataset.dirty = "true";
   }
-
   function clearDirty() {
     dirty = false;
     refs.drawer.dataset.dirty = "false";
@@ -96,6 +96,17 @@ export function createConfigForm({ refs, dialogs, onCreated }) {
     baseFor = simulationId;
     fillForm(config);
     clearDirty();
+  }
+
+  async function copyJson() {
+    const text = refs.configJson?.textContent ?? "";
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      dialogs.toast("JSON copiado al portapapeles", "success");
+    } catch {
+      dialogs.toast("No se pudo copiar el JSON; selecciona el texto manualmente", "error");
+    }
   }
 
   async function duplicate() {
@@ -208,10 +219,10 @@ export function createConfigForm({ refs, dialogs, onCreated }) {
   function renderProfiles(profiles) {
     const wraps = [];
     for (const [key, title, catalog] of VOLUME_TABLES) {
-      wraps.append(profileTable(key, title, catalog, profiles[key] ?? {}, "Peso"));
+      wraps.push(profileTable(key, title, catalog, profiles[key] ?? {}, "Peso"));
     }
     for (const [key, title, catalog] of MULTIPLIER_TABLES) {
-      wraps.append(profileTable(key, title, catalog, profiles[key] ?? {}, "Multiplicador"));
+      wraps.push(profileTable(key, title, catalog, profiles[key] ?? {}, "Multiplicador"));
     }
     refs.formProfiles.replaceChildren(...wraps);
     updateProfilesSummary();

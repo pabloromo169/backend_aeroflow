@@ -5,6 +5,7 @@ export function createConfigPanel({ refs, dialogs }) {
   let requestId = 0;
   let loadedFor = null;
   let loadingFor = null;
+  let lastConfig = null;
 
   async function open() {
     dialogs.openDrawer();
@@ -25,6 +26,7 @@ export function createConfigPanel({ refs, dialogs }) {
       const config = await getConfiguration(simulationId);
       if (current !== requestId) return;
       render(config, refs, simulationId);
+      lastConfig = config;
       loadedFor = simulationId;
     } catch (error) {
       if (current !== requestId) return;
@@ -44,9 +46,8 @@ export function createConfigPanel({ refs, dialogs }) {
     void load(simulationId);
   }
 
-  return { open, reload, load };
+  return { open, reload, load, current: () => lastConfig };
 }
-
 function render(config, refs, simulationId) {
   refs.drawerTitle.textContent = `${config.simulation_id} · ${config.name}`;
   refs.drawerCurrent.hidden = false;

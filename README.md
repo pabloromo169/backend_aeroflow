@@ -25,6 +25,47 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
 
 Se usa un worker porque el estado y la coordinación de una ejecución viven en memoria. La interfaz interactiva de OpenAPI está en `http://127.0.0.1:8000/docs`.
 
+## Interfaz web
+
+El backend sirve el centro de control en `http://127.0.0.1:8000/`:
+
+- `GET /` devuelve `web/index.html`.
+- `/assets/*` sirve CSS y los módulos ES de `web/assets/js/`.
+- La interfaz no necesita npm ni compilación.
+- Consulta la API cada 5 segundos, se pausa al ocultar la pestaña y refresca al cambiar de simulación, página o intervalo.
+- El selector solo muestra configuraciones guardadas en `operativos`; `SIM-NIFI-TEST` no aparece porque no tiene configuración.
+- Las horas se muestran en UTC.
+- La configuración se abre en un cajón lateral con las pestañas «Configuración actual» y «Nueva simulación». El alta parte de la configuración seleccionada y no arranca la simulación automáticamente.
+- Para enlazar directamente el cajón: `http://127.0.0.1:8000/?panel=config&sim=SIM-01`.
+
+El diseño y las decisiones de interfaz están en `web/DESIGN.md`.
+
+### Despliegue nativo con Traefik
+
+Los artefactos están en `deploy/`:
+
+- `deploy/aeroflow-backend.service`: unidad systemd que ejecuta uvicorn desde `.venv` en `0.0.0.0:8000`.
+- `deploy/traefik-aeroflow.yml`: router para `aeroflow.monolith.dynamic-dns.net`, servicio hacia `http://172.18.0.1:8000` y middleware de basic auth.
+
+Pasos:
+
+```bash
+sudo cp deploy/aeroflow-backend.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now aeroflow-backend
+sudo systemctl status aeroflow-backend
+```
+
+Después, añade el router y el servicio de `deploy/traefik-aeroflow.yml` a `dynamic.yml` de Traefik, genera el hash con `htpasswd -nbB aeroflow 'CONTRASEÑA'` y sustitúyelo en el middleware. El hash no se versiona. Reinicia Traefik y restringe el puerto 8000 en el firewall para que solo sea accesible desde el proxy.
+
+Para desarrollo local:
+
+```bash
+.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
+```
+
+Si no existe `.venv`, créalo con `python3 -m venv .venv` e instala `requirements-dev.txt`.
+
 ## API
 
 | Método | Ruta | Uso |

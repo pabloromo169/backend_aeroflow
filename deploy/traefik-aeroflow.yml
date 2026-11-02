@@ -1,0 +1,38 @@
+# sirve el backend nativo con Traefik y protege el acceso con basic auth
+# Uso:
+#   1. sudo cp deploy/aeroflow-backend.service /etc/systemd/system/
+#   2. sudo systemctl daemon-reload && sudo systemctl enable --now aeroflow-backend
+#   3. generar el hash: htpasswd -nbB aeroflow 'CONTRASEÑA'
+#   4. pegar el hash en dynamic.yml (nunca la contraseña en claro)
+#   5. docker restart traefik
+#
+# El backend escucha en 0.0.0.0:8000; Traefik lo alcanza por el gateway
+# docker 172.18.0.1. Restringe el puerto 8000 en el firewall de la VM para que
+# solo se acceda a través de Traefik.
+
+http:
+  routers:
+    aeroflow:
+      rule: "Host(`aeroflow.monolith.dynamic-dns.net`)"
+      service: aeroflow-svc
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: myresolver
+      middlewares:
+        - aeroflow-auth
+
+  middlewares:
+    aeroflow-auth:
+      basicAuth:
+        users:
+          # htpasswd -nbB aeroflow 'CONTRASEÑA' | sed 's/\\$/$/g'
+          # Ejemplo de forma: aeroflow:$2y$05$...
+          - "aeroflow:REEMPLAZA_ESTE_HASH"
+
+  services:
+    aeroflow-svc:
+      loadBalancer:
+        servers:
+          - url: "http://172.18.0.1:8000"
+        passHostHeader: true

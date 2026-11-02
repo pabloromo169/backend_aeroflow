@@ -1427,6 +1427,10 @@ input {
   line-height: 1.5;
 }
 
+.af-copy {
+  margin: 8px 12px 12px;
+}
+
 .af-toasts {
   position: fixed;
   right: 24px;

@@ -36,7 +36,7 @@ const refs = {
   configGates: document.querySelector("#config-gates"),
   configCatalogs: document.querySelector("#config-catalogs"),
   configJson: document.querySelector("#config-json"),
-  drawer: document.querySelector("#config-drawer"),
+  configCopy: document.querySelector("#config-copy"),
   tabCurrent: document.querySelector("#tab-current"),
   tabNew: document.querySelector("#tab-new"),
   drawerDuplicate: document.querySelector("#drawer-duplicate"),

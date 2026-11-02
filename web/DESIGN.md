@@ -1072,11 +1072,15 @@ Estado: completada. `main.js` arranca la consulta inicial, elige la simulación 
 - Refresco manual, configuración, arrancar/parar.
 - Modales de confirmación y toasts.
 
+Estado: completada. El selector usa solo configuraciones guardadas, la píldora distingue directo/parcial/sin conexión, el botón de ejecución alterna Arrancar y Parar con confirmación, y `?panel=config` abre el cajón.
+
 ### Fase 5 · Métricas y muelle
 
 - Cuatro tarjetas globales.
 - Cinco tarjetas de puerta con barras locales y clic para filtrar.
 - Estado vacío completo.
+
+Estado: completada. Los totales salen de `summary.totals`; las puertas muestran umbral, terminal, salidas, superaciones y porcentaje, y su clic filtra la tabla.
 
 ### Fase 6 · Evolución
 
@@ -1084,11 +1088,15 @@ Estado: completada. `main.js` arranca la consulta inicial, elige la simulación 
 - Selector hora/día.
 - Leyenda, tooltips y estado sin datos.
 
+Estado: completada. La gráfica usa `timeline.items[].above_threshold`, muestra el rango UTC, conserva el intervalo en la URL y distingue el estado vacío.
+
 ### Fase 7 · Tabla
 
 - Tabla paginada de 20 filas.
 - Filtros de página y chip de puerta.
 - Paginación reflejada en la URL.
+
+Estado: completada. La tabla pagina contra la API, deshabilita extremos, muestra filas de superación con texto e icono y aplica filtros solo a la página cargada.
 
 ### Fase 8 · Cajón y formulario
 
@@ -1097,12 +1105,16 @@ Estado: completada. `main.js` arranca la consulta inicial, elige la simulación 
 - Validación cliente + mapeo de 422.
 - Guardar, duplicar, confirmación de cambios sin guardar.
 
+Estado: completada. El cajón consulta la configuración guardada, permite duplicarla, edita umbrales y terminales con intercambio uno a uno, reconstruye los perfiles y envía solo el objeto resultante. Al guardar no arranca la simulación.
+
 ### Fase 9 · Despliegue y pruebas
 
 - `aeroflow-backend.service`.
 - Router y basic auth de Traefik.
 - Cabeceras CSP.
 - Pruebas de humo, documentación y capturas para la memoria.
+
+Estado: preparada. Se añaden `deploy/aeroflow-backend.service` y `deploy/traefik-aeroflow.yml`, además de CSP, `nosniff`, `Referrer-Policy` y comprobación de mismo origen en escrituras. La instalación del servicio y la sustitución del hash de basic auth requieren `sudo`, que no está disponible en esta sesión; el hash no se versiona.
 
 Cada fase termina con `pytest` en verde y una comprobación manual de la anterior.
 

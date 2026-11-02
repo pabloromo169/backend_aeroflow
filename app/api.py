@@ -8,11 +8,12 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 from pymongo.errors import ConnectionFailure, DuplicateKeyError, ServerSelectionTimeoutError
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -43,6 +44,19 @@ def _enriched_flight(flight: dict[str, Any]) -> dict[str, Any]:
     result["delay_minutes"] = delay
     result["exceeds_threshold"] = delay > threshold
     return result
+
+
+def _same_origin(request: Request) -> bool:
+    """Reject cross-site writes while keeping CLI and same-origin clients working."""
+    origin = request.headers.get("origin")
+    fetch_site = request.headers.get("sec-fetch-site")
+    if fetch_site == "cross-site":
+        return False
+    if not origin:
+        return True
+    host = request.headers.get("host")
+    parsed = urlsplit(origin)
+    return bool(host) and parsed.netloc == host
 
 
 def _publish_seed(publisher_factory, config: SimulationConfig) -> None:
@@ -114,6 +128,30 @@ def create_app(
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @app.middleware("http")
+    async def security_and_origin(request: Request, call_next):
+        if request.method in {"POST", "PUT", "PATCH", "DELETE"} and not _same_origin(request):
+            from fastapi.responses import JSONResponse
+
+            response = JSONResponse(
+                status_code=403, content={"detail": "Origen no permitido"}
+            )
+        else:
+            response = await call_next(request)
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; "
+            "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; "
+            "frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        )
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("Referrer-Policy", "no-referrer")
+        response.headers.setdefault(
+            "Permissions-Policy", "geolocation=(), microphone=(), camera=()"
+        )
+        return response
+
     app.state.repository = repository
     app.state.manager = manager
 
