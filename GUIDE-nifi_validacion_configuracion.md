@@ -275,7 +275,9 @@ Reglas cubiertas:
 - `defect_rate` = `0.05`
 - `timezone` = `Europe/Madrid`
 - `gates` exactamente 5, `delay_threshold_minutes > 0`
-- `destinations`/`airlines`/`aircraft_models`/`aircraft` ≥ 1
+- `destinations`/`airlines`/`aircraft_models`/`aircraft` ≥ 1. El catálogo de
+  destinos es fijo en el escenario (`DEST-01`…`DEST-04`) y el backend rechaza
+  cualquier otro, por lo que NiFi y la API validan la misma lista.
 - `base_delay_probability` ∈ `[0,1]`
 - `max_delay_minutes_beyond_threshold` ∈ `[1,1440]`
 
@@ -358,6 +360,9 @@ mongosh "mongodb://admin:<PASS>@localhost:27017/?authSource=admin" --quiet --eva
 - No se reimplementan en NiFi todas las validaciones cruzadas del backend
   (equilibrio de flota, unicidad de prefijos, mínimos por compañía): la autoridad
   es el backend. El flujo valida tipos, presencia y rangos.
+- El **catálogo de destinos es fijo** (`DEST-01`…`DEST-04`). El backend rechaza
+  configuraciones con otros destinos, de modo que este flujo no recibe catálogos
+  que no pueda validar. El detalle está en `GUIDE-nifi-flujo-vuelos.md`.
 - Tolerar propiedades adicionales (no `extra=forbid`).
 
 ---

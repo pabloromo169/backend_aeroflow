@@ -206,6 +206,7 @@ def create_app(
         if config is None:
             raise HTTPException(status_code=404, detail="Configuración no encontrada")
         events = await asyncio.to_thread(repository.flight_counts_by_gate, simulation_id)
+        totals = await asyncio.to_thread(repository.flight_totals, simulation_id)
         counts = {
             gate.gate_id: {"valid_departures": 0, "above_threshold": 0}
             for gate in config.gates
@@ -227,18 +228,30 @@ def create_app(
             metric["terminal_id"] = gate.terminal_id
             metric["delay_threshold_minutes"] = gate.delay_threshold_minutes
             metric["above_threshold_percentage"] = (
-                metric["above_threshold"] / metric["valid_departures"] * 100
+                round(metric["above_threshold"] / metric["valid_departures"] * 100, 2)
                 if metric["valid_departures"]
                 else 0.0
             )
             gates.append(metric)
+        valid_departures = int(totals.get("valid_departures", 0))
+        above_threshold = int(totals.get("above_threshold", 0))
         return {
             "simulation_id": simulation_id,
-            "gates": gates,
             "partial": (
                 manager.status.simulation_id == simulation_id
                 and manager.status.state in {"running", "stopping"}
             ),
+            "totals": {
+                "valid_departures": valid_departures,
+                "above_threshold": above_threshold,
+                "above_threshold_percentage": (
+                    round(above_threshold / valid_departures * 100, 2)
+                    if valid_departures
+                    else 0.0
+                ),
+                "distinct_aircraft": int(totals.get("distinct_aircraft", 0)),
+            },
+            "gates": gates,
         }
 
     @app.get("/api/simulations/{simulation_id}/flights")
@@ -281,7 +294,11 @@ def create_app(
             "timezone": "UTC",
             "interval": interval,
             "items": [
-                {"timestamp": bucket.get("_id"), "departures": bucket.get("count", 0)}
+                {
+                    "timestamp": bucket.get("_id"),
+                    "departures": bucket.get("count", 0),
+                    "above_threshold": bucket.get("above_threshold", 0),
+                }
                 for bucket in buckets
             ],
         }

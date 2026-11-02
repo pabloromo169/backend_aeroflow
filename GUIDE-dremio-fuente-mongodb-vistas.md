@@ -8,7 +8,8 @@ construcción de las **nueve vistas analíticas** del proyecto AeroFlow.
 - **Fuente Dremio:** `mongo_aeroflow` (tipo `MONGO`)
 - **Espacio Dremio:** `Aeroflow`
 - **Fecha de construcción:** 2026-11-02
-- **Datos analizados:** simulación `SIM-01` (1.020 salidas válidas, 50 aviones distintos)
+- **Datos analizados:** simulación `SIM-01` (1.007 salidas válidas, 50 aviones distintos)
+- **Evidencia post-fin:** simulación `SIM-POSTEND` (101 salidas válidas, 3 cruces del fin)
 
 > **Credenciales.** En esta guía se usan los marcadores `<DREMIO_PASSWORD>` y
 > `<MONGO_ADMIN_PASSWORD>`. Las credenciales reales no se escriben en el repositorio:
@@ -61,12 +62,19 @@ Resultado final:
 | Vistas requeridas | 9 (`D1`–`D9`) |
 | Vistas auxiliares | 2 (`D4b`, `D5b`) |
 | **Datasets totales** | **13** |
-| Salidas válidas de `SIM-01` | 1.020 |
-| Salidas que superan el umbral | 375 (36,76 %) |
+| Salidas válidas de `SIM-01` | 1.007 |
+| Salidas que superan el umbral | 374 (37,14 %) |
 | Aviones distintos | 50 (50 con al menos una superación) |
 
 Las 13 vistas compilan y consultan correctamente. Los totales de D2, D3, D4, D5, D5b,
-D6 y D8 reconcilian con D9: **1.020 salidas válidas y 375 superaciones**.
+D6 y D8 reconcilian con D9: **1.007 salidas válidas y 374 superaciones**.
+
+> **Cambio respecto a la primera ejecución.** La primera pasada de `SIM-01` almacenó
+> 1.020 salidas porque NiFi solo validaba el formato de `destination_id` y dejaba
+> pasar 13 registros `DEST-UNKNOWN`. Se añadió la comprobación contra el catálogo
+> `DEST-01…DEST-04`, se vació `SIM-01`, se reejecutó la simulación y ahora los 53
+> defectos del generador (5 %) se rechazan. Las cifras de esta guía son las de la
+> ejecución limpia.
 
 ---
 
@@ -131,14 +139,20 @@ mongosh "mongodb://admin:<MONGO_ADMIN_PASSWORD>@localhost:27017/?authSource=admi
 Resultado:
 
 ```text
-vuelos=1021
-operativos=3
+vuelos=1109
+operativos=4
 configuracion=2
-[ { _id: 'SIM-NIFI-TEST', n: 1 }, { _id: 'SIM-01', n: 1020 } ]
+[
+  { _id: 'SIM-NIFI-TEST', n: 1 },
+  { _id: 'SIM-01', n: 1007 },
+  { _id: 'SIM-POSTEND', n: 101 }
+]
 ```
 
 `SIM-01` es la simulación analizada. `SIM-NIFI-TEST` es el documento de prueba del flujo
-NiFi y se excluye filtrando por simulación.
+NiFi y `SIM-POSTEND` es la simulación de evidencia post-fin; ambas se excluyen
+filtrando por simulación. Tras el cambio de validación de destinos, `SIM-01` conserva
+las 1.007 salidas válidas y los 53 defectos del generador quedan en el Funnel.
 
 ---
 
@@ -507,7 +521,7 @@ FROM Aeroflow.V0_salidas
 WHERE simulation_id = 'SIM-01';
 ```
 
-Resultado: **1.020 salidas, 50 aviones**.
+Resultado: **1.007 salidas, 50 aviones**.
 
 ### 7.3. `V0_puertas`: universo de puertas
 
@@ -559,7 +573,7 @@ GROUP BY g.simulation_id, g.gate_id, g.terminal_id, v.destination_id
 - **Nota:** `COUNT(DISTINCT aircraft_id)` es correcto dentro de cada grupo, pero **no
   se puede sumar** entre grupos para obtener el total del aeropuerto. El total está en D9.
 
-Resultado (25 filas: 5 puertas × 5 destinos, incluido `DEST-UNKNOWN`):
+Resultado (20 filas: 5 puertas × 4 destinos del catálogo):
 
 | Puerta | Terminal | Destino | Salidas válidas | Aviones distintos |
 |---|---|---|---|---|
@@ -567,33 +581,27 @@ Resultado (25 filas: 5 puertas × 5 destinos, incluido `DEST-UNKNOWN`):
 | G1 | T1 | DEST-02 | 72 | 41 |
 | G1 | T1 | DEST-03 | 83 | 43 |
 | G1 | T1 | DEST-04 | 51 | 33 |
-| G1 | T1 | DEST-UNKNOWN | 2 | 2 |
 | G2 | T2 | DEST-01 | 40 | 29 |
 | G2 | T2 | DEST-02 | 36 | 27 |
 | G2 | T2 | DEST-03 | 67 | 38 |
 | G2 | T2 | DEST-04 | 40 | 28 |
-| G2 | T2 | DEST-UNKNOWN | 1 | 1 |
 | G3 | T3 | DEST-01 | 39 | 29 |
 | G3 | T3 | DEST-02 | 51 | 35 |
 | G3 | T3 | DEST-03 | 72 | 40 |
 | G3 | T3 | DEST-04 | 62 | 36 |
-| G3 | T3 | DEST-UNKNOWN | 7 | 7 |
 | G4 | T4 | DEST-01 | 46 | 32 |
 | G4 | T4 | DEST-02 | 44 | 33 |
 | G4 | T4 | DEST-03 | 65 | 38 |
 | G4 | T4 | DEST-04 | 51 | 31 |
-| G4 | T4 | DEST-UNKNOWN | 2 | 2 |
 | G5 | T5 | DEST-01 | 37 | 25 |
 | G5 | T5 | DEST-02 | 30 | 23 |
 | G5 | T5 | DEST-03 | 39 | 28 |
 | G5 | T5 | DEST-04 | 31 | 23 |
-| G5 | T5 | DEST-UNKNOWN | 1 | 1 |
 
-**Lectura:** G1 y G3 concentran el mayor volumen (259 y 231 salidas). DEST-03 es el
-destino más frecuente (326 salidas), seguido muy de cerca por DEST-04 (235) y
-DEST-02 (233). `DEST-UNKNOWN` aparece porque NiFi valida el formato del identificador,
-pero no lo contrasta contra `operativos`; son 13 salidas en total y se conservan para
-no perder datos.
+**Lectura:** G1 y G3 concentran el mayor volumen (257 y 224 salidas). DEST-03 es el
+destino más frecuente (326 salidas), seguido de DEST-04 (235) y DEST-02 (233).
+No aparecen destinos fuera del catálogo porque NiFi rechaza cualquier
+`destination_id` que no sea `DEST-01`–`DEST-04`.
 
 **Puertas con cero salidas:** se probó con `SIM-VALID-API`, que tiene configuración
 en `operativos` pero ninguna salida. D1 devuelve las 5 puertas con
@@ -624,17 +632,17 @@ GROUP BY g.simulation_id, g.gate_id, g.terminal_id, g.gate_threshold
 
 | Puerta | Terminal | Umbral | Salidas válidas | Superan umbral | % |
 |---|---|---|---|---|---|
-| G4 | T4 | 20 | 208 | 129 | **62,02** |
-| G1 | T1 | 15 | 259 | 93 | 35,91 |
-| G3 | T3 | 15 | 231 | 68 | 29,44 |
-| G2 | T2 | 15 | 184 | 50 | 27,17 |
-| G5 | T5 | 15 | 138 | 35 | 25,36 |
+| G4 | T4 | 20 | 206 | 128 | **62,14** |
+| G1 | T1 | 15 | 257 | 93 | 36,19 |
+| G3 | T3 | 15 | 224 | 68 | 30,36 |
+| G2 | T2 | 15 | 183 | 50 | 27,32 |
+| G5 | T5 | 15 | 137 | 35 | 25,55 |
 
-**Lectura:** G4 tiene el porcentaje más alto (62,02 %), pero también un umbral más
+**Lectura:** G4 tiene el porcentaje más alto (62,14 %), pero también un umbral más
 exigente (20 min) y una composición de vuelos distinta. G1 es la puerta con más
-salidas y el segundo porcentaje. G5 es la que menos supera, con 25,36 %.
+salidas y el segundo porcentaje. G5 es la que menos supera, con 25,55 %.
 
-La suma de salidas es 1.020 y la de superaciones 375, que coincide con D9.
+La suma de salidas es 1.007 y la de superaciones 374, que coincide con D9.
 
 ### D3. Horas y franjas horarias
 
@@ -658,10 +666,10 @@ Resumen por franja:
 
 | Franja | Salidas válidas | Superan umbral | % |
 |---|---|---|---|
-| Madrugada (00–06) | 187 | 59 | 31,55 |
-| Mañana (06–12) | 306 | 102 | 33,33 |
-| Tarde (12–18) | 289 | 94 | 32,53 |
-| Noche (18–24) | 238 | 120 | **50,42** |
+| Madrugada (00–06) | 185 | 59 | 31,89 |
+| Mañana (06–12) | 301 | 102 | 33,89 |
+| Tarde (12–18) | 286 | 94 | 32,87 |
+| Noche (18–24) | 235 | 119 | **50,64** |
 
 Top 10 celdas puerta–hora por porcentaje:
 
@@ -673,13 +681,13 @@ Top 10 celdas puerta–hora por porcentaje:
 | G4 | 7 | Mañana | 10 | 8 | 80,00 |
 | G4 | 19 | Noche | 9 | 7 | 77,78 |
 | G4 | 18 | Noche | 13 | 10 | 76,92 |
-| G4 | 23 | Noche | 8 | 6 | 75,00 |
 | G4 | 22 | Noche | 8 | 6 | 75,00 |
-| G4 | 21 | Noche | 11 | 8 | 72,73 |
+| G4 | 23 | Noche | 8 | 6 | 75,00 |
 | G4 | 15 | Tarde | 11 | 8 | 72,73 |
+| G4 | 5 | Madrugada | 7 | 5 | 71,43 |
 
-**Lectura:** la franja de noche concentra el 50,42 % de superaciones, frente al
-31–33 % de las demás. G4 es la puerta que más contribuye. Las celdas con muy pocas
+**Lectura:** la franja de noche concentra el 50,64 % de superaciones, frente al
+31–34 % de las demás. G4 es la puerta que más contribuye. Las celdas con muy pocas
 salidas (por ejemplo, G5 a las 20 h con 2 vuelos) deben interpretarse con cautela:
 un 100 % sobre 2 observaciones no es comparable a un 100 % sobre 14.
 
@@ -704,11 +712,11 @@ GROUP BY simulation_id, day_type
 
 | Tipo de día | Salidas válidas | Aviones distintos | Superan umbral | % |
 |---|---|---|---|---|
-| Fin de semana | 293 | 50 | 116 | **39,59** |
-| Laborable | 727 | 50 | 259 | 35,63 |
+| Fin de semana | 286 | 50 | 115 | **40,21** |
+| Laborable | 721 | 50 | 259 | 35,92 |
 
 **Lectura:** el fin de semana tiene menos salidas (2 días frente a 5), pero un
-porcentaje de superación algo mayor (39,59 % vs 35,63 %). Los 50 aviones distintos
+porcentaje de superación algo mayor (40,21 % vs 35,92 %). Los 50 aviones distintos
 aparecen en ambos tipos de día; **no se suman** (son el mismo conjunto de aviones).
 La comparación correcta es de porcentajes, no de totales absolutos.
 
@@ -726,15 +734,15 @@ GROUP BY simulation_id, scheduled_local_date, day_type
 
 | Fecha local | Tipo | Salidas | Aviones | Superan | % |
 |---|---|---|---|---|---|
-| 2026-10-05 | Laborable | 152 | 50 | 51 | 33,55 |
-| 2026-10-06 | Laborable | 140 | 50 | 57 | 40,71 |
+| 2026-10-05 | Laborable | 151 | 50 | 51 | 33,77 |
+| 2026-10-06 | Laborable | 138 | 50 | 57 | 41,30 |
 | 2026-10-07 | Laborable | 144 | 50 | 50 | 34,72 |
-| 2026-10-08 | Laborable | 145 | 50 | 53 | 36,55 |
-| 2026-10-09 | Laborable | 146 | 50 | 48 | 32,88 |
-| 2026-10-10 | Fin de semana | 148 | 50 | 51 | 34,46 |
-| 2026-10-11 | Fin de semana | 145 | 50 | 65 | **44,83** |
+| 2026-10-08 | Laborable | 143 | 50 | 53 | 37,06 |
+| 2026-10-09 | Laborable | 145 | 50 | 48 | 33,10 |
+| 2026-10-10 | Fin de semana | 146 | 50 | 51 | 34,93 |
+| 2026-10-11 | Fin de semana | 140 | 50 | 64 | **45,71** |
 
-El 11 de octubre es el día con mayor porcentaje (44,83 %), lo que explica en parte
+El 11 de octubre es el día con mayor porcentaje (45,71 %), lo que explica en parte
 la diferencia del agregado de fin de semana.
 
 ### D5. Compañías con mayor porcentaje de superación
@@ -761,18 +769,18 @@ GROUP BY simulation_id, airline
 
 | Compañía | Salidas válidas | Superan umbral | % | ≥100 |
 |---|---|---|---|---|
-| Aero03 | 102 | 43 | **42,16** | Sí |
-| Aero01 | 102 | 41 | 40,20 | Sí |
-| Aero08 | 102 | 39 | 38,24 | Sí |
-| Aero09 | 102 | 39 | 38,24 | Sí |
-| Aero02 | 101 | 38 | 37,62 | Sí |
-| Aero04 | 102 | 38 | 37,25 | Sí |
-| Aero05 | 102 | 37 | 36,27 | Sí |
-| Aero07 | 103 | 36 | 34,95 | Sí |
-| Aero06 | 102 | 32 | 31,37 | Sí |
-| Aero10 | 102 | 32 | 31,37 | Sí |
+| Aero03 | 100 | 43 | **43,00** | Sí |
+| Aero01 | 100 | 41 | 41,00 | Sí |
+| Aero08 | 101 | 39 | 38,61 | Sí |
+| Aero09 | 101 | 39 | 38,61 | Sí |
+| Aero02 | 100 | 38 | 38,00 | Sí |
+| Aero04 | 101 | 38 | 37,62 | Sí |
+| Aero05 | 101 | 37 | 36,63 | Sí |
+| Aero07 | 101 | 35 | 34,65 | Sí |
+| Aero06 | 101 | 32 | 31,68 | Sí |
+| Aero10 | 101 | 32 | 31,68 | Sí |
 
-**Lectura:** el rango va de 31,37 % (Aero06 y Aero10) a 42,16 % (Aero03), unas 10,8
+**Lectura:** el rango va de 31,68 % (Aero06 y Aero10) a 43,00 % (Aero03), unas 11,3
 puntos porcentuales. Todas las compañías están justo por encima de 100 salidas, por
 lo que una o dos operaciones pueden mover el porcentaje. No se debe interpretar como
 una diferencia causal de comportamiento: la composición de destinos, puertas, modelos
@@ -794,17 +802,19 @@ objetivo es descriptivo, no clasificar compañías):
 
 | Compañía | Puerta | Salidas | Superan | % |
 |---|---|---|---|---|
-| Aero07 | G4 | 20 | 15 | 75,00 |
+| Aero07 | G4 | 18 | 14 | 77,78 |
 | Aero10 | G4 | 20 | 15 | 75,00 |
 | Aero03 | G4 | 25 | 18 | 72,00 |
 | Aero01 | G4 | 24 | 16 | 66,67 |
 | Aero05 | G4 | 15 | 10 | 66,67 |
+| Aero04 | G4 | 26 | 16 | 61,54 |
 | Aero10 | G2 | 23 | 2 | 8,70 |
-| Aero10 | G3 | 26 | 3 | 11,54 |
+| Aero10 | G3 | 25 | 3 | 12,00 |
 | Aero04 | G5 | 22 | 3 | 13,64 |
 
 La puerta G4 aparece sistemáticamente por encima del resto, lo que sugiere que el
-efecto de puerta pesa más que la compañía en esta simulación.
+efecto de puerta pesa más que la compañía en esta simulación. Se muestran también
+tres grupos del extremo inferior (Aero10 en G2/G3 y Aero04 en G5) para contraste.
 
 ### D6. Retraso medio y magnitud de la superación
 
@@ -842,28 +852,23 @@ Grupos con más salidas:
 | Puerta | Destino | Salidas | Retraso medio | Superan | Media exceso | Máx. exceso | Nota |
 |---|---|---|---|---|---|---|---|
 | G1 | DEST-03 | 83 | 21,60 | 28 | 35,11 | 60 | Con superaciones |
-| G3 | DEST-03 | 72 | 19,21 | 21 | 31,95 | 59 | Con superaciones |
 | G1 | DEST-02 | 72 | 26,82 | 35 | 31,26 | 58 | Con superaciones |
+| G3 | DEST-03 | 72 | 19,21 | 21 | 31,95 | 59 | Con superaciones |
 | G2 | DEST-03 | 67 | 15,27 | 15 | 26,73 | 58 | Con superaciones |
 | G4 | DEST-03 | 65 | 30,68 | 37 | 27,32 | 58 | Con superaciones |
 | G3 | DEST-04 | 62 | 19,13 | 16 | 39,50 | 60 | Con superaciones |
-| G1 | DEST-04 | 51 | 17,24 | 15 | 24,67 | 60 | Con superaciones |
 | G1 | DEST-01 | 51 | 15,90 | 15 | 20,80 | 48 | Con superaciones |
+| G1 | DEST-04 | 51 | 17,24 | 15 | 24,67 | 60 | Con superaciones |
 
-Grupos sin superaciones (todos de `DEST-UNKNOWN`):
+Todos los grupos del catálogo tienen al menos una superación en `SIM-01`; no hay
+filas con `note = 'Sin superaciones'`. La comprobación de que el flujo etiqueta
+correctamente esos casos se hace sobre `SIM-VALID-API` y sobre los grupos con cero
+salidas (sección 9).
 
-| Puerta | Destino | Salidas | Retraso medio | Superan | Nota |
-|---|---|---|---|---|---|
-| G3 | DEST-UNKNOWN | 7 | 6,86 | 0 | Sin superaciones |
-| G1 | DEST-UNKNOWN | 2 | 10,50 | 0 | Sin superaciones |
-| G5 | DEST-UNKNOWN | 1 | 7,00 | 0 | Sin superaciones |
-| G2 | DEST-UNKNOWN | 1 | 12,00 | 0 | Sin superaciones |
-
-**Lectura:** G4–DEST-03 tiene el retraso medio más alto (30,68 min) y 37
+**Lectura:** G4–DEST-02 tiene el retraso medio más alto (43,77 min) y 36
 superaciones. G1–DEST-03 es el grupo con más salidas (83) y un retraso medio de
-21,60 min. En `DEST-UNKNOWN`, G1/G2/G3/G5 no tienen superaciones (retrasos medios
-bajos), mientras que G4–DEST-UNKNOWN tiene 2 salidas y 1 superación con 43 min de
-exceso; por eso este último no aparece en la tabla de “sin superaciones”.
+21,60 min. G5–DEST-03 es el grupo con menor retraso medio (9,64 min) y solo 4
+superaciones.
 
 ### D7. Aviones con dos o más superaciones en un mismo día
 
@@ -889,7 +894,7 @@ HAVING COUNT(DISTINCT operation_id) >= 2
   aparece.
 
 Resultado: **107 grupos avión-día** (91 con 2 operaciones y 16 con 3), 44 aviones
-distintos y 230 salidas con superación dentro de estos grupos. Las otras 145
+distintos y 230 salidas con superación dentro de estos grupos. Las otras 144
 superaciones de `SIM-01` son casos aislados de avión-día y no cumplen la condición.
 
 Top 10 por máxima diferencia:
@@ -900,12 +905,12 @@ Top 10 por máxima diferencia:
 | AV-0014 | 2026-10-09 | 2 | 2 | 60 |
 | AV-0031 | 2026-10-06 | 2 | 2 | 60 |
 | AV-0037 | 2026-10-11 | 2 | 2 | 60 |
-| AV-0029 | 2026-10-09 | 3 | 3 | 59 |
 | AV-0003 | 2026-10-10 | 2 | 2 | 59 |
+| AV-0029 | 2026-10-09 | 3 | 3 | 59 |
 | AV-0039 | 2026-10-06 | 2 | 2 | 59 |
-| AV-0031 | 2026-10-05 | 2 | 2 | 58 |
+| AV-0022 | 2026-10-11 | 2 | 2 | 58 |
 | AV-0025 | 2026-10-10 | 2 | 2 | 58 |
-| AV-0041 | 2026-10-07 | 2 | 2 | 58 |
+| AV-0031 | 2026-10-05 | 2 | 2 | 58 |
 
 **Lectura:** el avión AV-0029 acumula 3 operaciones con superación el 2026-10-09;
 AV-0031 aparece en dos días distintos, lo que es válido porque la condición es por
@@ -934,19 +939,19 @@ GROUP BY simulation_id, airline, aircraft_model
 
 | Compañía | Modelo | Salidas válidas | Superan umbral | % | ≥100 |
 |---|---|---|---|---|---|
-| Aero01 | Modelo A | 102 | 41 | 40,20 | Sí |
-| Aero02 | Modelo B | 101 | 38 | 37,62 | Sí |
-| Aero03 | Modelo C | 102 | 43 | 42,16 | Sí |
-| Aero04 | Modelo D | 102 | 38 | 37,25 | Sí |
-| Aero05 | Modelo E | 102 | 37 | 36,27 | Sí |
-| Aero06 | Modelo A | 102 | 32 | 31,37 | Sí |
-| Aero07 | Modelo B | 103 | 36 | 34,95 | Sí |
-| Aero08 | Modelo C | 102 | 39 | 38,24 | Sí |
-| Aero09 | Modelo D | 102 | 39 | 38,24 | Sí |
-| Aero10 | Modelo E | 102 | 32 | 31,37 | Sí |
+| Aero01 | Modelo A | 100 | 41 | 41,00 | Sí |
+| Aero02 | Modelo B | 100 | 38 | 38,00 | Sí |
+| Aero03 | Modelo C | 100 | 43 | 43,00 | Sí |
+| Aero04 | Modelo D | 101 | 38 | 37,62 | Sí |
+| Aero05 | Modelo E | 101 | 37 | 36,63 | Sí |
+| Aero06 | Modelo A | 101 | 32 | 31,68 | Sí |
+| Aero07 | Modelo B | 101 | 35 | 34,65 | Sí |
+| Aero08 | Modelo C | 101 | 39 | 38,61 | Sí |
+| Aero09 | Modelo D | 101 | 39 | 38,61 | Sí |
+| Aero10 | Modelo E | 101 | 32 | 31,68 | Sí |
 
-**Lectura:** Aero03–Modelo C tiene el porcentaje más alto (42,16 %) y Aero06/Aero10
-con Modelo A/E el más bajo (31,37 %). Como cada compañía usa un único modelo, en esta
+**Lectura:** Aero03–Modelo C tiene el porcentaje más alto (43,00 %) y Aero06/Aero10
+con Modelo A/E el más bajo (31,68 %). Como cada compañía usa un único modelo, en esta
 simulación **no se puede separar el efecto compañía del efecto modelo**: están
 confundidos. Se necesitaría una simulación con varios modelos por compañía para
 comparar dentro de una misma compañía.
@@ -972,9 +977,9 @@ GROUP BY simulation_id
 
 | Salidas válidas | Aviones distintos | Aviones con ≥1 superación | Salidas que superan | % aviones | % salidas |
 |---:|---:|---:|---:|---:|---:|
-| 1.020 | 50 | 50 | 375 | **100,00** | **36,76** |
+| 1.007 | 50 | 50 | 374 | **100,00** | **37,14** |
 
-**Lectura:** los 50 aviones tienen al menos una superación, pero solo el 36,76 % de
+**Lectura:** los 50 aviones tienen al menos una superación, pero solo el 37,14 % de
 las salidas supera el umbral. No son contradictorios: un mismo avión puede acumular
 varias superaciones. El porcentaje de aviones es 100 % porque el conjunto es pequeño
 y todos los aviones vuelan varias veces; el de salidas mide la proporción de
@@ -988,16 +993,16 @@ operaciones, no de aviones.
 
 | Vista | Salidas válidas | Superan umbral | % |
 |---|---:|---:|---:|
-| D2 | 1.020 | 375 | 36,76 |
-| D3 | 1.020 | 375 | 36,76 |
-| D4 | 1.020 | 375 | 36,76 |
-| D5 | 1.020 | 375 | 36,76 |
-| D5b | 1.020 | 375 | 36,76 |
-| D6 | 1.020 | 375 | 36,76 |
-| D8 | 1.020 | 375 | 36,76 |
-| D9 | 1.020 | 375 | 36,76 |
+| D2 | 1.007 | 374 | 37,14 |
+| D3 | 1.007 | 374 | 37,14 |
+| D4 | 1.007 | 374 | 37,14 |
+| D5 | 1.007 | 374 | 37,14 |
+| D5b | 1.007 | 374 | 37,14 |
+| D6 | 1.007 | 374 | 37,14 |
+| D8 | 1.007 | 374 | 37,14 |
+| D9 | 1.007 | 374 | 37,14 |
 
-D1 también suma 1.020 salidas (no calcula superaciones). La coherencia entre todas
+D1 también suma 1.007 salidas (no calcula superaciones). La coherencia entre todas
 las vistas confirma que los `JOIN`, los filtros y los denominadores son correctos.
 
 ### 9.2. Superación estricta
@@ -1040,9 +1045,12 @@ D2 devuelve las 5 puertas con `pct_over_threshold = 0.0`, y D6 devuelve
 
 ### 9.4. Grupos sin superaciones
 
-En D6, 4 grupos de `DEST-UNKNOWN` tienen `note = 'Sin superaciones'` y los campos
-`avg_minutes_over` y `max_minutes_over` a `NULL`. Es la representación explícita que
-pide el enunciado.
+En la ejecución limpia de `SIM-01` todos los grupos puerta–destino tienen al menos una
+superación, así que D6 no devuelve filas con `note = 'Sin superaciones'`. La rama
+`CASE` está implementada y se comprueba con `SIM-VALID-API` (grupos con
+`note = 'Sin salidas'`); para un grupo con salidas pero ninguna superación, la vista
+devuelve `note = 'Sin superaciones'` y deja `avg_minutes_over` y `max_minutes_over` a
+`NULL`.
 
 ### 9.5. Simulación de prueba
 
@@ -1050,6 +1058,37 @@ pide el enunciado.
 aparece en D1/D2/D6 (no hay puertas configuradas) y sí aparece en D5/D8/D9 como una
 simulación de 1 salida si no se filtra. El informe debe filtrar por `SIM-01`; las
 vistas no imponen una simulación fija para que Power BI pueda cambiar de escenario.
+
+### 9.6. Evidencia de salida posterior al fin del periodo
+
+`SIM-POSTEND` es una simulación pequeña y separada, creada solo para demostrar que
+una operación programada dentro del periodo puede tener salida efectiva después del
+fin. No forma parte del análisis D1–D9 de `SIM-01`.
+
+```sql
+SELECT event_id, gate_id, destination_id,
+       scheduled_departure_at, actual_departure_at,
+       delay_minutes, delay_threshold_minutes
+FROM Aeroflow.V0_salidas
+WHERE simulation_id = 'SIM-POSTEND'
+  AND scheduled_departure_at < TIMESTAMP '2026-10-12 00:00:00'
+  AND actual_departure_at >= TIMESTAMP '2026-10-12 00:00:00'
+ORDER BY actual_departure_at;
+```
+
+Resultado: **3 salidas** cruzan el fin del periodo.
+
+| `event_id` | Puerta | Destino | Salida programada | Salida efectiva | Retraso | Umbral |
+|---|---|---|---|---|---|---|
+| `EV-SIM-POSTEND-000033` | G2 | DEST-02 | 2026-10-11 10:50 | 2026-10-12 00:01 | 791 min | 15 |
+| `EV-SIM-POSTEND-000078` | G1 | DEST-03 | 2026-10-11 15:01 | 2026-10-12 02:20 | 679 min | 15 |
+| `EV-SIM-POSTEND-000100` | G2 | DEST-02 | 2026-10-11 22:37 | 2026-10-12 20:37 | 1320 min | 15 |
+
+La simulación tiene **101 salidas válidas**, **5 aviones** y **101 superaciones**
+(se configuró con `base_delay_probability = 1.0`). El detalle de su construcción está
+en `GUIDE-simulacion-postend.md`. El informe de Power BI debe seguir filtrando
+`SIM-01`; `SIM-POSTEND` solo se usa en la página de validación si se quiere mostrar
+la evidencia.
 
 ---
 
@@ -1130,10 +1169,10 @@ Seleccionar el espacio `Aeroflow` y las vistas D1–D9 (y las auxiliares D4b/D5b
 usan). No seleccionar las colecciones crudas de MongoDB para el informe: las vistas ya
 aplican las reglas y los agregados.
 
-> **Aviso del enunciado:** comprobar que el conector de Power BI instalado soporta
-> DirectQuery con Dremio 26.0.5. Si solo ofrece Import, comunicarlo al profesorado
-> antes de sustituir componentes. No se debe presentar un modelo importado como si
-> fuera DirectQuery.
+> **Comprobación realizada:** el conector de Power BI instalado en el equipo de
+> prácticas conecta con Dremio 26.0.5 y permite **DirectQuery** sobre las vistas
+> `Aeroflow`. La prueba se hizo con `Aeroflow.D9_aviones_con_superacion`. No se
+> sustituyó ningún componente.
 
 ### 11.2. Filtros del informe
 
@@ -1253,13 +1292,19 @@ La etiqueta inicial `Manana` se corrigió a `Mañana` con un `PUT` de la vista
 
 ### 12.7. `DEST-UNKNOWN`
 
-NiFi valida el **formato** de `destination_id`, pero no lo contrasta con la lista de
-destinos de `operativos` (no era un requisito del flujo). Por eso hay 13 salidas con
-`DEST-UNKNOWN` en `SIM-01`. Aparecen en D1 y D6; en D6, G1/G2/G3/G5 son los 4 grupos
-con `Sin superaciones` y G4–DEST-UNKNOWN sí supera el umbral. Si se quisiera
-eliminarlas, habría que añadir una regla de
-validación en NiFi o filtrarlas en las vistas; se decidió conservarlas para no perder
-datos y documentar la limitación.
+En la primera ejecución, NiFi solo validaba el **formato** de `destination_id` y 13
+registros con `DEST-UNKNOWN` entraban en `vuelos` (1.020 salidas en total). Se
+consideró incoherente con los 53 defectos del generador y con el catálogo de
+`operativos`, así que se añadió a `ClasificarVuelo` la condición
+`destination_id IN ('DEST-01','DEST-02','DEST-03','DEST-04')`. Después se vació
+`SIM-01`, se reejecutó la simulación y ahora los 53 defectos se rechazan: **1.007
+salidas válidas**, sin `DEST-UNKNOWN`.
+
+La lista es fija y coincide con el catálogo del escenario. El modelo Pydantic y
+`POST /api/configurations` rechazan cualquier configuración con otros destinos, de
+modo que el formulario web no puede crear una simulación que NiFi vaya a rechazar
+sistemáticamente. Si en el futuro se quisiera un catálogo variable, habría que
+sustituir la lista por un `LookupRecord` contra `operativos`.
 
 ### 12.8. Simulación sin configuración
 
@@ -1327,16 +1372,19 @@ Aeroflow.D9_aviones_con_superacion
 - [x] Vistas base `V0_salidas` y `V0_puertas`.
 - [x] Nueve vistas D1–D9 creadas y consultables.
 - [x] Vistas auxiliares `D4b` y `D5b`.
-- [x] Reconciliación de totales: 1.020 salidas y 375 superaciones.
+- [x] Reconciliación de totales: 1.007 salidas y 374 superaciones.
+- [x] Reejecución limpia tras rechazar los 13 `DEST-UNKNOWN` (53 defectos).
 - [x] Prueba de `>` estricto: 36 vuelos en el umbral, 0 superaciones.
 - [x] Prueba de puertas con cero salidas.
-- [x] Prueba de grupos “Sin superaciones”.
+- [x] Prueba de grupos con cero salidas y de la rama “Sin superaciones”.
 - [x] Documentación de dialecto, incidencias e identificadores.
+- [x] Power BI conectado a las vistas de Dremio en DirectQuery (comprobado).
+- [x] Evidencia post-fin con `SIM-POSTEND`: 3 salidas cruzan el fin del periodo.
 
 ### Pendiente
 
-- [ ] Conectar Power BI por DirectQuery y construir las tres páginas.
-- [ ] Verificar el soporte de DirectQuery del conector instalado.
+- [ ] Construir las tres páginas del informe Power BI (la conexión DirectQuery ya
+  está verificada).
 - [ ] Aplicación web (frontend + backend) contra MongoDB.
 - [ ] Pruebas funcionales 1–6 del enunciado.
 - [ ] Memoria en LaTeX y vídeo de demostración.
@@ -1427,11 +1475,11 @@ Salida esperada:
 [
   {
     "simulation_id": "SIM-01",
-    "valid_departures": 1020,
+    "valid_departures": 1007,
     "distinct_aircraft": 50,
-    "over_threshold_departures": 375,
+    "over_threshold_departures": 374,
     "pct_aircraft_with_exceedance": 100.0,
-    "pct_departures_over_threshold": 36.76470588235294
+    "pct_departures_over_threshold": 37.14001986097319
   }
 ]
 ```

@@ -147,8 +147,57 @@ class MongoRepository:
             )
         )
 
+    def flight_totals(self, simulation_id: str) -> dict[str, Any]:
+        delay_minutes = {
+            "$divide": [
+                {"$subtract": ["$actual_departure_at", "$scheduled_departure_at"]},
+                60_000,
+            ]
+        }
+        cursor = self.flights.aggregate(
+            [
+                {"$match": {"simulation_id": simulation_id, "record_valid": True}},
+                {
+                    "$group": {
+                        "_id": None,
+                        "valid_departures": {"$sum": 1},
+                        "above_threshold": {
+                            "$sum": {
+                                "$cond": [
+                                    {"$gt": [delay_minutes, "$delay_threshold_minutes"]},
+                                    1,
+                                    0,
+                                ]
+                            }
+                        },
+                        "aircraft": {"$addToSet": "$aircraft_id"},
+                    }
+                },
+                {
+                    "$project": {
+                        "_id": 0,
+                        "valid_departures": 1,
+                        "above_threshold": 1,
+                        "distinct_aircraft": {
+                            "$size": {"$setDifference": ["$aircraft", [None]]}
+                        },
+                    }
+                },
+            ]
+        )
+        return next(
+            iter(cursor),
+            {"valid_departures": 0, "above_threshold": 0, "distinct_aircraft": 0},
+        )
+
     def flights_over_time(self, simulation_id: str, interval: str) -> list[dict[str, Any]]:
         date_format = {"hour": "%Y-%m-%dT%H:00:00Z", "day": "%Y-%m-%dT00:00:00Z"}[interval]
+        delay_minutes = {
+            "$divide": [
+                {"$subtract": ["$actual_departure_at", "$scheduled_departure_at"]},
+                60_000,
+            ]
+        }
         return list(
             self.flights.aggregate(
                 [
@@ -163,6 +212,15 @@ class MongoRepository:
                                 }
                             },
                             "count": {"$sum": 1},
+                            "above_threshold": {
+                                "$sum": {
+                                    "$cond": [
+                                        {"$gt": [delay_minutes, "$delay_threshold_minutes"]},
+                                        1,
+                                        0,
+                                    ]
+                                }
+                            },
                         }
                     },
                     {"$sort": {"_id": ASCENDING}},

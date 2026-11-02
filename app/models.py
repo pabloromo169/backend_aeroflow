@@ -8,6 +8,10 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 NonEmpty = Annotated[str, Field(min_length=1)]
 
+# El catálogo es fijo para que la lista de destinos de NiFi no se desincronice.
+# El formulario web muestra los destinos en modo lectura; la API también los valida.
+FIXED_DESTINATION_IDS = ("DEST-01", "DEST-02", "DEST-03", "DEST-04")
+
 
 class Destination(BaseModel):
     destination_id: NonEmpty
@@ -113,6 +117,12 @@ class SimulationConfig(BaseModel):
         destination_ids = {destination.destination_id for destination in self.destinations}
         if len(destination_ids) != len(self.destinations):
             raise ValueError("destination_id debe ser único")
+        if destination_ids != set(FIXED_DESTINATION_IDS):
+            raise ValueError(
+                "El catálogo de destinos es fijo: "
+                + ", ".join(FIXED_DESTINATION_IDS)
+                + ". NiFi valida esta misma lista."
+            )
         if len({airline.airline for airline in self.airlines}) != len(self.airlines):
             raise ValueError("Los nombres de compañía deben ser únicos")
         if len({airline.flight_prefix for airline in self.airlines}) != len(self.airlines):

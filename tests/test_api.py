@@ -54,6 +54,7 @@ def test_summary_includes_empty_gates_and_uses_strict_threshold_comparison():
             {
                 "simulation_id": config.simulation_id,
                 "gate_id": "G1",
+                "aircraft_id": "AV-1",
                 "scheduled_departure_at": "2026-10-05T08:00:00Z",
                 "actual_departure_at": "2026-10-05T08:15:00Z",
                 "delay_threshold_minutes": 15,
@@ -62,6 +63,7 @@ def test_summary_includes_empty_gates_and_uses_strict_threshold_comparison():
             {
                 "simulation_id": config.simulation_id,
                 "gate_id": "G1",
+                "aircraft_id": "AV-2",
                 "scheduled_departure_at": "2026-10-05T09:00:00Z",
                 "actual_departure_at": "2026-10-05T09:16:00Z",
                 "delay_threshold_minutes": 15,
@@ -78,6 +80,85 @@ def test_summary_includes_empty_gates_and_uses_strict_threshold_comparison():
     assert response.json()["gates"][0]["valid_departures"] == 2
     assert response.json()["gates"][0]["above_threshold"] == 1
     assert response.json()["gates"][1]["valid_departures"] == 0
+    assert response.json()["totals"] == {
+        "valid_departures": 2,
+        "above_threshold": 1,
+        "above_threshold_percentage": 50.0,
+        "distinct_aircraft": 2,
+    }
+
+
+def test_summary_totals_count_distinct_aircraft_across_gates():
+    repository = MemoryRepository()
+    config = example_configuration()
+    repository.ensure_seed(config)
+    repository.flights.extend(
+        [
+            {
+                "simulation_id": config.simulation_id,
+                "gate_id": "G1",
+                "aircraft_id": "AV-1",
+                "scheduled_departure_at": "2026-10-05T08:00:00Z",
+                "actual_departure_at": "2026-10-05T08:10:00Z",
+                "delay_threshold_minutes": 15,
+                "record_valid": True,
+            },
+            {
+                "simulation_id": config.simulation_id,
+                "gate_id": "G2",
+                "aircraft_id": "AV-1",
+                "scheduled_departure_at": "2026-10-05T09:00:00Z",
+                "actual_departure_at": "2026-10-05T09:30:00Z",
+                "delay_threshold_minutes": 15,
+                "record_valid": True,
+            },
+            {
+                "simulation_id": config.simulation_id,
+                "gate_id": "G2",
+                "aircraft_id": "AV-2",
+                "scheduled_departure_at": "2026-10-05T10:00:00Z",
+                "actual_departure_at": "2026-10-05T10:00:00Z",
+                "delay_threshold_minutes": 15,
+                "record_valid": False,
+            },
+            {
+                "simulation_id": config.simulation_id,
+                "gate_id": "G3",
+                "aircraft_id": "AV-1",
+                "scheduled_departure_at": "2026-10-05T11:00:00Z",
+                "actual_departure_at": "2026-10-05T11:02:00Z",
+                "delay_threshold_minutes": 15,
+                "record_valid": True,
+            },
+        ]
+    )
+
+    response = TestClient(create_app(repository=repository, publisher_factory=NullPublisher)).get(
+        f"/api/simulations/{config.simulation_id}/summary"
+    )
+
+    totals = response.json()["totals"]
+    assert totals["valid_departures"] == 3
+    assert totals["above_threshold"] == 1
+    assert totals["above_threshold_percentage"] == 33.33
+    assert totals["distinct_aircraft"] == 1
+
+
+def test_summary_totals_are_zero_for_a_configuration_without_flights():
+    repository = MemoryRepository()
+    config = example_configuration()
+    repository.ensure_seed(config)
+
+    response = TestClient(create_app(repository=repository, publisher_factory=NullPublisher)).get(
+        f"/api/simulations/{config.simulation_id}/summary"
+    )
+
+    assert response.json()["totals"] == {
+        "valid_departures": 0,
+        "above_threshold": 0,
+        "above_threshold_percentage": 0.0,
+        "distinct_aircraft": 0,
+    }
 
 
 def test_summary_counts_valid_records_only():
@@ -141,8 +222,56 @@ def test_timeline_groups_actual_departure_timestamps_by_utc_hour():
 
     assert response.status_code == 200
     assert response.json()["items"] == [
-        {"timestamp": "2026-10-05T08:00:00Z", "departures": 2},
-        {"timestamp": "2026-10-05T09:00:00Z", "departures": 1},
+        {"timestamp": "2026-10-05T08:00:00Z", "departures": 2, "above_threshold": 0},
+        {"timestamp": "2026-10-05T09:00:00Z", "departures": 1, "above_threshold": 0},
+    ]
+
+
+def test_timeline_adds_above_threshold_counts_per_bucket():
+    repository = MemoryRepository()
+    config = example_configuration()
+    repository.ensure_seed(config)
+    repository.flights.extend(
+        [
+            {
+                "simulation_id": config.simulation_id,
+                "scheduled_departure_at": "2026-10-05T08:00:00Z",
+                "actual_departure_at": "2026-10-05T08:15:00Z",
+                "delay_threshold_minutes": 15,
+                "record_valid": True,
+            },
+            {
+                "simulation_id": config.simulation_id,
+                "scheduled_departure_at": "2026-10-05T08:10:00Z",
+                "actual_departure_at": "2026-10-05T08:26:00Z",
+                "delay_threshold_minutes": 15,
+                "record_valid": True,
+            },
+            {
+                "simulation_id": config.simulation_id,
+                "scheduled_departure_at": "2026-10-05T09:00:00Z",
+                "actual_departure_at": "2026-10-05T09:01:00Z",
+                "delay_threshold_minutes": 15,
+                "record_valid": True,
+            },
+            {
+                "simulation_id": config.simulation_id,
+                "scheduled_departure_at": "2026-10-05T09:20:00Z",
+                "actual_departure_at": "2026-10-05T10:00:00Z",
+                "delay_threshold_minutes": 15,
+                "record_valid": False,
+            },
+        ]
+    )
+
+    response = TestClient(create_app(repository=repository, publisher_factory=NullPublisher)).get(
+        f"/api/simulations/{config.simulation_id}/timeline?interval=hour"
+    )
+
+    assert response.status_code == 200
+    assert response.json()["items"] == [
+        {"timestamp": "2026-10-05T08:00:00Z", "departures": 2, "above_threshold": 1},
+        {"timestamp": "2026-10-05T09:00:00Z", "departures": 1, "above_threshold": 0},
     ]
 
 
@@ -425,3 +554,23 @@ def test_startup_survives_a_kafka_publish_failure():
         pass
 
     assert repository.get_configuration("SIM-01") is not None
+
+
+def test_configuration_rejects_a_destination_catalog_that_nifi_would_not_accept():
+    repository = MemoryRepository()
+    repository.ensure_seed(example_configuration())
+    payload = example_configuration().model_dump(
+        mode="json", exclude={"simulation_id", "random_seed"}
+    )
+    payload["destinations"] = [
+        {"destination_id": "DEST-01", "name": "Destino Norte"},
+        {"destination_id": "DEST-02", "name": "Destino Centro"},
+        {"destination_id": "DEST-03", "name": "Destino Este"},
+        {"destination_id": "DEST-05", "name": "Destino Oeste"},
+    ]
+    client = TestClient(create_app(repository=repository, publisher_factory=NullPublisher))
+
+    response = client.post("/api/configurations", json=payload)
+
+    assert response.status_code == 422
+    assert "catálogo de destinos es fijo" in response.text

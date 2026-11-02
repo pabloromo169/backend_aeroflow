@@ -78,8 +78,33 @@ class MemoryRepository:
             count["above_threshold"] += int(delay > threshold)
         return [{"gate_id": gate, **metrics} for gate, metrics in counts.items()]
 
+    def flight_totals(self, simulation_id: str) -> dict[str, Any]:
+        valid_departures = 0
+        above_threshold = 0
+        aircraft: set[str] = set()
+        for flight in self.flights:
+            if flight["simulation_id"] != simulation_id or flight.get("record_valid") is not True:
+                continue
+            valid_departures += 1
+            aircraft_id = flight.get("aircraft_id")
+            if aircraft_id:
+                aircraft.add(str(aircraft_id))
+            try:
+                actual = _as_utc(flight["actual_departure_at"])
+                scheduled = _as_utc(flight["scheduled_departure_at"])
+                threshold = float(flight["delay_threshold_minutes"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            delay = (actual - scheduled).total_seconds() / 60
+            above_threshold += int(delay > threshold)
+        return {
+            "valid_departures": valid_departures,
+            "above_threshold": above_threshold,
+            "distinct_aircraft": len(aircraft),
+        }
+
     def flights_over_time(self, simulation_id: str, interval: str) -> list[dict[str, Any]]:
-        buckets: dict[str, int] = {}
+        buckets: dict[str, dict[str, int]] = {}
         for flight in self.flights:
             if flight["simulation_id"] != simulation_id or flight.get("record_valid") is not True:
                 continue
@@ -90,8 +115,19 @@ class MemoryRepository:
                 if interval == "hour"
                 else timestamp.strftime("%Y-%m-%dT00:00:00Z")
             )
-            buckets[key] = buckets.get(key, 0) + 1
-        return [{"_id": key, "count": count} for key, count in sorted(buckets.items())]
+            bucket = buckets.setdefault(key, {"count": 0, "above_threshold": 0})
+            bucket["count"] += 1
+            try:
+                scheduled = _as_utc(flight["scheduled_departure_at"])
+                threshold = float(flight["delay_threshold_minutes"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            delay = (timestamp - scheduled).total_seconds() / 60
+            bucket["above_threshold"] += int(delay > threshold)
+        return [
+            {"_id": key, **bucket}
+            for key, bucket in sorted(buckets.items())
+        ]
 
 
 def _as_utc(value: datetime | str | None) -> datetime:

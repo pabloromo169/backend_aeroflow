@@ -294,6 +294,7 @@ WHERE record_valid = TRUE
   AND gate_id IN ('G1','G2','G3','G4','G5')
   AND terminal_id IN ('T1','T2','T3','T4','T5')
   AND destination_id LIKE 'DEST-%'
+  AND destination_id IN ('DEST-01','DEST-02','DEST-03','DEST-04')
 ```
 
 `invalidos` (complemento exacto):
@@ -311,7 +312,17 @@ WHERE record_valid = FALSE
    OR gate_id NOT IN ('G1','G2','G3','G4','G5')
    OR terminal_id NOT IN ('T1','T2','T3','T4','T5')
    OR destination_id NOT LIKE 'DEST-%'
+   OR destination_id NOT IN ('DEST-01','DEST-02','DEST-03','DEST-04')
 ```
+
+> **Lista de destinos permitidos.** La regla `IN (...)` se añadió para que un
+> `destination_id` con formato válido pero fuera del catálogo (`DEST-UNKNOWN`,
+> `DEST-99`, etc.) también acabe en el Funnel. La lista se corresponde con el
+> catálogo fijo del escenario. El modelo del backend y la API rechazan cualquier
+> configuración con otro catálogo, y el formulario web mostrará los destinos en
+> modo lectura. Así la lista de NiFi y la del backend no pueden desincronizarse.
+> Una alternativa más general sería un `LookupRecord` contra `operativos`; no es
+> necesaria mientras el catálogo sea fijo.
 
 - `validos` → `GuardarVuelo`
 - `invalidos` → Funnel
@@ -427,6 +438,7 @@ Se publicaron con un productor `confluent_kafka` sobre `aeroflow.vuelos`:
 | `event_id="BADID"` | `flight` | `invalidos` → Funnel |
 | `gate_id="G9"` | `flight` | `invalidos` → Funnel |
 | `terminal_id="T9"` | `flight` | `invalidos` → Funnel |
+| `destination_id="DEST-UNKNOWN"` (13 casos de la simulación) | `flight` | `invalidos` → Funnel |
 | JSON malformado | `flight` | `failure` → Funnel |
 | Campos ausentes | `flight` | `invalid` → Funnel |
 | Caso de `/test-events` | `test` | `prueba` → Funnel |
@@ -474,16 +486,37 @@ Resultado de la ejecución de referencia:
 | Métrica | Valor |
 |---|---|
 | Eventos publicados por el simulador | **1060** |
-| Documentos `SIM-01` en `vuelos` | **1020** |
-| `event_id` únicos en `SIM-01` | **1020** (0 duplicados) |
-| Rechazados por NiFi | **40** (~3,8 %, defectos del 5 % que afectan a las reglas validadas) |
-| Documentos totales en `vuelos` | **1021** (1020 de `SIM-01` + 1 caso de prueba) |
+| Documentos `SIM-01` en `vuelos` | **1007** |
+| `event_id` únicos en `SIM-01` | **1007** (0 duplicados) |
+| Rechazados por NiFi | **53** (5,0 %: los 53 defectos del generador) |
+| Documentos totales en `vuelos` (estado actual) | **1.109** (1.007 de `SIM-01` + 1 de prueba + 101 de `SIM-POSTEND`) |
 
 Distribución por puerta:
 
 ```text
-G1: 259   G2: 184   G3: 231   G4: 208   G5: 138
+G1: 257   G2: 183   G3: 224   G4: 206   G5: 137
 ```
+
+Los 53 rechazos se reparten así: **14** en `ValidarEsquemaVuelo` (campos ausentes o
+tipos inválidos) y **39** en `ClasificarVuelo` (13 umbrales no positivos, 13 salidas
+efectivas anteriores a la programada y 13 destinos fuera del catálogo). Comprobación:
+
+```javascript
+const v = db.getSiblingDB("aeroflow").vuelos;
+print("SIM-01:", v.countDocuments({simulation_id: "SIM-01"}));
+print("DEST-UNKNOWN:", v.countDocuments({simulation_id: "SIM-01", destination_id: "DEST-UNKNOWN"}));
+print("duplicados:", v.aggregate([
+  {$match: {simulation_id: "SIM-01"}},
+  {$group: {_id: "$event_id", n: {$sum: 1}}},
+  {$match: {n: {$gt: 1}}}
+]).toArray().length);
+```
+
+Resultado esperado: `SIM-01: 1007`, `DEST-UNKNOWN: 0`, `duplicados: 0`.
+
+> **Evidencia post-fin.** `SIM-POSTEND` añade 101 salidas válidas y 3 cruces del fin
+> del periodo (`EV-SIM-POSTEND-000033`, `-000078` y `-000100`). Se documenta en
+> `GUIDE-simulacion-postend.md`; no altera el análisis de `SIM-01`.
 
 Documento de ejemplo (fechas ya como BSON `Date`):
 
@@ -494,15 +527,16 @@ Documento de ejemplo (fechas ya como BSON `Date`):
   "terminal_id": "T2",
   "scheduled_departure_at": "2026-10-11T21:48:00.000Z",
   "actual_departure_at": "2026-10-11T22:03:00.000Z",
-  "emitted_at": "2026-11-02T16:35:15.159Z",
+  "emitted_at": "2026-11-02T17:38:49.180Z",
   "record_valid": true
 }
 ```
 
-> Del 5 % de operaciones defectuosas del generador, NiFi rechaza las que incumplen
-> las reglas del flujo (campo ausente, umbral no positivo, salida efectiva anterior).
-> El destino desconocido **no** se valida contra el catálogo de `operativos`:
-> el enunciado no lo exige en NiFi y la autoridad sobre el catálogo es el backend.
+> El 5 % de operaciones defectuosas del generador (53 de 1060) se rechaza completo:
+> campo ausente, umbral no positivo, salida efectiva anterior, JSON/esquema inválido
+> y destino fuera del catálogo (`DEST-UNKNOWN`). Ningún registro defectuoso llega a
+> `vuelos`. La regla de destino permitido se añadió a `ClasificarVuelo` y se validó
+> con los 13 casos `DEST-UNKNOWN` de la simulación.
 
 ---
 
@@ -520,6 +554,7 @@ Documento de ejemplo (fechas ya como BSON `Date`):
 | Consultas sin filas | Emitían FlowFiles vacíos | `Include Zero Record FlowFiles = false` |
 | Duplicados | `insert` duplicaría | `PutMongoRecord` con `Update Key Fields = event_id` |
 | Calcite | No soporta campos anidados/arrays | Las reglas usan solo campos de primer nivel |
+| Destino fuera de catálogo | `DEST-UNKNOWN` pasaba como formato válido | Añadir `destination_id IN (catálogo)` a `validos` e `invalidos` |
 
 ### IDs de esta instalación
 
@@ -551,8 +586,8 @@ Consumer group aeroflow-vuelos: LAG 0
 ```
 
 Con esto, la cadena **simulador → Kafka → NiFi → MongoDB** queda completa para
-las salidas. Los siguientes pasos del proyecto son Dremio (vistas D1–D9), la web
-y Power BI.
+las salidas. Dremio ya tiene las vistas D1–D9 sobre esta colección; los siguientes
+pasos son la web y Power BI.
 
 ---
 
@@ -566,7 +601,15 @@ y Power BI.
 - Si hay que reprocesar desde el principio:
   1. Parar `ConsumirVuelos`.
   2. `kafka-consumer-groups.sh --bootstrap-server localhost:9092 --group aeroflow-vuelos --topic aeroflow.vuelos --reset-offsets --to-earliest --execute`
-  3. Volver a arrancar. Los `event_id` ya insertados se actualizan, no se duplican.
+  3. Vaciar `vuelos` de esa simulación (`deleteMany`) o confiar en el upsert por `event_id`.
+  4. Volver a arrancar. Los `event_id` ya insertados se actualizan, no se duplican.
+- **Destinos permitidos:** el catálogo es fijo (`DEST-01`…`DEST-04`). El modelo
+  Pydantic y `POST /api/configurations` rechazan cualquier otro catálogo, y el
+  formulario web muestra los destinos en modo lectura. Así `ClasificarVuelo` y el
+  backend validan exactamente la misma lista. Si en el futuro se quisiera un
+  catálogo variable, habría que sustituir la lista por un `LookupRecord` contra
+  `operativos`.
 - Documentos relacionados: `GUIDE-nifi-flujo-kafka-mongodb.md`,
-  `GUIDE-nifi_validacion_configuracion.md` y
+  `GUIDE-nifi_validacion_configuracion.md`,
+  `GUIDE-simulacion-postend.md` y
   `GUIDE-traefik-servicios-nativos-192.168.0.26.md`.

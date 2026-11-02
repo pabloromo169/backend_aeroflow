@@ -34,13 +34,15 @@ Se usa un worker porque el estado y la coordinación de una ejecución viven en 
 | `GET` | `/api/simulations` | Selector de simulación con total de salidas almacenadas y última emisión |
 | `GET` | `/api/configurations/{simulation_id}` | Lee una configuración |
 | `POST` | `/api/configurations` | Crea una configuración nueva; el API asigna ID y semilla si no se indican |
-| `GET` | `/api/simulations/{simulation_id}/summary` | Contadores por las cinco puertas, con puertas sin eventos incluidas |
+| `GET` | `/api/simulations/{simulation_id}/summary` | Totales globales (salidas, superaciones, porcentaje y aviones distintos) y contadores por las cinco puertas, con puertas sin eventos incluidas |
 | `GET` | `/api/simulations/{simulation_id}/flights?limit=20&offset=0` | Últimas salidas almacenadas, paginadas (máximo 200 por página) |
-| `GET` | `/api/simulations/{simulation_id}/timeline?interval=hour` | Evolución de salidas por hora efectiva UTC (`hour` o `day`) |
+| `GET` | `/api/simulations/{simulation_id}/timeline?interval=hour` | Evolución de salidas y superaciones por hora efectiva UTC (`hour` o `day`) |
 | `POST` | `/api/simulations/{simulation_id}/start` | Publica la configuración y comienza esa simulación |
 | `POST` | `/api/simulations/stop` | Solicita una parada ordenada entre eventos confirmados |
 | `GET` | `/api/simulations/status` | Estado, progreso, timestamps y último error |
 | `POST` | `/api/simulations/{simulation_id}/test-events` | Publica casos de prueba etiquetados para NiFi |
+
+`summary` incluye `totals` con salidas válidas, superaciones, porcentaje y aviones distintos de toda la simulación, además de los contadores por puerta. `timeline` añade `above_threshold` a cada intervalo para que la web pueda dibujar barras apiladas. En ambos casos se aplica la misma regla estricta que Dremio: el retraso en minutos debe ser mayor que el umbral.
 
 Ejemplo para iniciar la semilla:
 
@@ -49,7 +51,7 @@ Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/simulations/SIM-01/star
 Invoke-RestMethod http://127.0.0.1:8000/api/simulations/status
 ```
 
-La API devuelve solo las salidas que ya estén guardadas en MongoDB. Es posible que el contador de eventos publicados aumente antes que los contadores de MongoDB, porque NiFi realiza la persistencia por separado. Los registros normales incluyen `record_valid=true`; alrededor del 5% contiene valores deliberadamente defectuosos para validar y enrutar con NiFi. Los campos de fallo concreto no se añaden al contrato del evento.
+La API devuelve solo las salidas que ya estén guardadas en MongoDB. Es posible que el contador de eventos publicados aumente antes que los contadores de MongoDB, porque NiFi realiza la persistencia por separado. Los registros normales incluyen `record_valid=true`; alrededor del 5% contiene valores deliberadamente defectuosos para validar y enrutar con NiFi. Los campos de fallo concreto no se añaden al contrato del evento. NiFi rechaza los 53 defectos de `SIM-01` (incluidos los 13 con destino fuera del catálogo), por lo que la colección final contiene **1.007 salidas válidas**.
 
 ### Inspeccionar mensajes Kafka en vivo
 
@@ -84,11 +86,17 @@ Las credenciales de MongoDB permanecen en el backend. CORS acepta todos los orí
 
 ## Configuración y simulación
 
-El seed tiene siete días simulados, cinco puertas G1–G5 enlazadas uno a uno a T1–T5, 10 compañías, 50 aviones (cinco por compañía), cinco modelos (cada combinación de compañía/modelo tiene una flota equilibrada), destinos didácticos y 1060 operaciones. El 5% fijo de operaciones de muestra se distribuye entre errores detectables: campo obligatorio ausente, destino desconocido, umbral negativo o una hora efectiva declarada anterior a la programada. Esos errores mantienen `record_valid=true` para que NiFi haga la validación real.
+El seed tiene siete días simulados, cinco puertas G1–G5 enlazadas uno a uno a T1–T5, 10 compañías, 50 aviones (cinco por compañía), cinco modelos (cada combinación de compañía/modelo tiene una flota equilibrada), destinos didácticos y 1060 operaciones. El 5% fijo de operaciones de muestra se distribuye entre errores detectables: campo obligatorio ausente, destino desconocido, umbral negativo o una hora efectiva declarada anterior a la programada. Esos errores mantienen `record_valid=true` para que NiFi haga la validación real; el flujo rechaza también los destinos que no estén en el catálogo `DEST-01…DEST-04`.
 
 La misma configuración y semilla generan iguales horarios, retrasos, aviones, identificadores y defectos. El campo `emitted_at` se reemplaza durante la publicación por la hora real UTC, por lo que puede variar entre repeticiones. `simulation_days` debe ser al menos siete y los umbrales de puerta deben ser positivos (mínimo 1 minuto); volumen y probabilidad de retraso se ajustan por perfiles de puerta, destino y franja. No se configura comportamiento distinto por compañía.
 
-Los formularios de configuración requieren los catálogos y listas descritos en el JSON de `SIM-01`; pueden omitir `simulation_id` y `random_seed` para que los genere el backend, o especificar una semilla para reproducir los datos. Cada configuración guardada queda en `operativos` y se conserva para resultados históricos.
+Los formularios de configuración requieren los catálogos y listas descritos en el
+JSON de `SIM-01`; pueden omitir `simulation_id` y `random_seed` para que los genere
+el backend, o especificar una semilla para reproducir los datos. **El catálogo de
+destinos es fijo** (`DEST-01`…`DEST-04`): el modelo y la API rechazan cualquier
+configuración que lo cambie, y el formulario web los muestra en modo lectura. Esto
+mantiene sincronizada la validación de NiFi con la del backend. Cada configuración
+guardada queda en `operativos` y se conserva para resultados históricos.
 
 ## Pruebas
 

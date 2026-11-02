@@ -1,6 +1,13 @@
 from datetime import datetime, timezone
 
-from app.models import SimulationConfig
+from app.models import FIXED_DESTINATION_IDS, SimulationConfig
+
+_DESTINATION_NAMES = {
+    "DEST-01": "Destino Norte",
+    "DEST-02": "Destino Centro",
+    "DEST-03": "Destino Este",
+    "DEST-04": "Destino Sur",
+}
 
 
 def example_configuration() -> SimulationConfig:
@@ -29,10 +36,11 @@ def example_configuration() -> SimulationConfig:
             "total_operations": 1060,
             "defect_rate": 0.05,
             "destinations": [
-                {"destination_id": "DEST-01", "name": "Destino Norte"},
-                {"destination_id": "DEST-02", "name": "Destino Centro"},
-                {"destination_id": "DEST-03", "name": "Destino Este"},
-                {"destination_id": "DEST-04", "name": "Destino Sur"},
+                {
+                    "destination_id": destination_id,
+                    "name": _DESTINATION_NAMES[destination_id],
+                }
+                for destination_id in FIXED_DESTINATION_IDS
             ],
             "gates": [
                 {
