@@ -1064,6 +1064,8 @@ Estado: completada. `GET /` sirve `web/index.html`, `GET /assets/*` sirve los es
 - `Promise.allSettled`, timeout, pausa por visibilidad.
 - Banner global y frescura por bloque.
 
+Estado: completada. `main.js` arranca la consulta inicial, elige la simulación de la URL o la activa y repite el ciclo cada 5 s, con pausa al ocultar la pestaña y refresco forzado tras cambiar de simulación.
+
 ### Fase 4 · Cabecera y controles
 
 - Selector, pill de estado, última actualización.

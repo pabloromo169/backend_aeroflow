@@ -72,6 +72,10 @@ input {
   border: 0;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .af-skip-link {
   position: absolute;
   top: -100px;

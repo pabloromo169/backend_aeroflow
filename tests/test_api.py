@@ -29,6 +29,7 @@ def test_web_shell_and_assets_are_served_without_shadowing_the_api():
 
     page = client.get("/")
     styles = client.get("/assets/styles.css")
+    script = client.get("/assets/js/main.js")
     api = client.get("/api/simulations")
 
     assert page.status_code == 200
@@ -36,6 +37,8 @@ def test_web_shell_and_assets_are_served_without_shadowing_the_api():
     assert page.headers["content-type"].startswith("text/html")
     assert styles.status_code == 200
     assert "--af-navy" in styles.text
+    assert script.status_code == 200
+    assert "createPoller" in script.text
     assert api.status_code == 200
     assert api.json()["total"] == 1
 
