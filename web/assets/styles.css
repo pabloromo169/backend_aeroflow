@@ -870,6 +870,16 @@ input {
   padding: 12px 16px;
 }
 
+.af-stale-note {
+  flex-basis: 100%;
+  padding: 6px 10px;
+  border: 1px dashed var(--af-warn);
+  border-radius: var(--af-radius-sm);
+  background: #fffbeb;
+  color: var(--af-warn);
+  font-size: 12px;
+}
+
 .af-table tbody tr:last-child td {
   border-bottom: 0;
 }

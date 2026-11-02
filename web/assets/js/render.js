@@ -6,6 +6,7 @@ export function renderShell(state, refs) {
   renderStatus(state, refs);
   renderBanners(state, refs);
   renderBusy(state, refs);
+  renderStaleNotes(state);
 }
 
 function renderSimulationSelect(state, select) {
@@ -122,10 +123,39 @@ function renderBusy(state, refs) {
 
 export function isOffline(state) {
   if (state.loading) return false;
-  const connectionErrors = ["simulations", "status"].filter((key) => state.errors[key]);
-  if (connectionErrors.length > 0) return true;
-  const dataKeys = ["summary", "flights", "timeline"];
-  return dataKeys.every((key) => state.errors[key]);
+  const essential = ["simulations", "status", "summary", "flights", "timeline"];
+  return essential.some((key) => state.errors[key]);
+}
+
+function renderStaleNotes(state) {
+  const targets = [
+    ["summary", "#metrics", "#metrics-stale"],
+    ["flights", "#departures-body", "#table-stale"],
+    ["timeline", "#evolution", "#chart-stale"],
+  ];
+  for (const [key, blockSelector, noteSelector] of targets) {
+    const block = document.querySelector(blockSelector);
+    if (!block) continue;
+    let note = document.querySelector(noteSelector);
+    const failed = Boolean(state.errors[key]) && Boolean(state[key]);
+    if (failed) {
+      if (!note) {
+        note = document.createElement("p");
+        note.id = noteSelector.slice(1);
+        note.className = "af-stale-note";
+        note.setAttribute("role", "status");
+        const head = block.closest(".af-section")?.querySelector(".af-section__head");
+        if (head) head.append(note);
+        else block.before(note);
+      }
+      const last = state.lastGood[key];
+      note.textContent = last
+        ? `Sin actualizar desde ${formatTimeSeconds(last)}. Se muestra el último dato correcto.`
+        : "Sin actualizar. Se muestra el último dato correcto.";
+    } else if (note) {
+      note.remove();
+    }
+  }
 }
 
 export function announce(message, refs) {
