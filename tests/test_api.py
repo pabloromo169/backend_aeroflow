@@ -22,6 +22,24 @@ class NullPublisher:
         pass
 
 
+def test_web_shell_and_assets_are_served_without_shadowing_the_api():
+    repository = MemoryRepository()
+    repository.ensure_seed(example_configuration())
+    client = TestClient(create_app(repository=repository, publisher_factory=NullPublisher))
+
+    page = client.get("/")
+    styles = client.get("/assets/styles.css")
+    api = client.get("/api/simulations")
+
+    assert page.status_code == 200
+    assert "Centro de control" in page.text
+    assert page.headers["content-type"].startswith("text/html")
+    assert styles.status_code == 200
+    assert "--af-navy" in styles.text
+    assert api.status_code == 200
+    assert api.json()["total"] == 1
+
+
 def test_configuration_creation_assigns_unique_id_and_seed():
     repository = MemoryRepository()
     repository.ensure_seed(example_configuration())

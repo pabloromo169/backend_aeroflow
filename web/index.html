@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#12324a" />
+    <meta
+      name="description"
+      content="Centro de control de AeroFlow: estado de las cinco puertas, evolución de salidas y últimas operaciones."
+    />
+    <title>AeroFlow · Centro de control</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <a class="af-skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="af-header">
+      <div class="af-header__inner">
+        <div class="af-header__brand">
+          <span class="af-header__mark" aria-hidden="true">AF</span>
+          <div>
+            <p class="af-header__eyebrow">AeroFlow</p>
+            <h1 class="af-header__title">Centro de control</h1>
+          </div>
+        </div>
+
+        <div class="af-header__controls">
+          <label class="af-field af-field--inline">
+            <span class="af-field__label">Simulación</span>
+            <select class="af-select af-select--header" id="simulation-select" disabled>
+              <option>Cargando simulaciones…</option>
+            </select>
+          </label>
+
+          <div class="af-header__status">
+            <span class="af-pill" id="status-pill" data-state="loading">Cargando</span>
+            <span class="af-header__updated" id="last-update">
+              Última actualización: —
+            </span>
+          </div>
+
+          <div class="af-header__actions">
+            <button class="af-button af-button--header" type="button" disabled>
+              Actualizar
+            </button>
+            <button class="af-button af-button--header" type="button" disabled>
+              Configurar
+            </button>
+            <button class="af-button af-button--header af-button--accent" type="button" disabled>
+              Arrancar
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="af-visually-hidden" id="live-region" aria-live="polite"></div>
+    <div class="af-banner af-banner--error" id="connection-banner" role="alert" hidden>
+      <span class="af-banner__icon" aria-hidden="true">!</span>
+      <p class="af-banner__text">
+        Sin conexión con la API. Se muestran los últimos datos disponibles.
+      </p>
+    </div>
+
+    <div class="af-banner af-banner--warning" id="partial-banner" hidden>
+      <span class="af-banner__icon" aria-hidden="true">◷</span>
+      <p class="af-banner__text">
+        Resultados parciales: NiFi sigue insertando. Los contadores pueden crecer.
+      </p>
+    </div>
+
+    <main class="af-main" id="contenido">
+      <section class="af-section" aria-labelledby="metrics-title">
+        <h2 class="af-visually-hidden" id="metrics-title">Contadores globales</h2>
+        <div class="af-metrics" id="metrics" aria-busy="true">
+          <article class="af-metric">
+            <p class="af-metric__label">Salidas válidas</p>
+            <p class="af-metric__value af-skeleton af-skeleton--number" aria-hidden="true"></p>
+            <p class="af-metric__note">Registros aceptados por NiFi</p>
+          </article>
+          <article class="af-metric">
+            <p class="af-metric__label">Superan umbral</p>
+            <p class="af-metric__value af-skeleton af-skeleton--number" aria-hidden="true"></p>
+            <p class="af-metric__note">Retraso mayor que el umbral</p>
+          </article>
+          <article class="af-metric">
+            <p class="af-metric__label">Porcentaje superior</p>
+            <p class="af-metric__value af-skeleton af-skeleton--number" aria-hidden="true"></p>
+            <p class="af-metric__note">Sobre el total de salidas válidas</p>
+          </article>
+          <article class="af-metric">
+            <p class="af-metric__label">Aviones distintos</p>
+            <p class="af-metric__value af-skeleton af-skeleton--number" aria-hidden="true"></p>
+            <p class="af-metric__note">Un avión puede operar en varias puertas</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="af-section" aria-labelledby="gates-title">
+        <div class="af-section__head">
+          <div>
+            <h2 class="af-section__title" id="gates-title">Muelle de puertas</h2>
+            <p class="af-section__subtitle">
+              Cinco puertas, cinco terminales y su umbral de retraso.
+            </p>
+          </div>
+        </div>
+
+        <div class="af-gates" id="gates" aria-busy="true">
+          <article class="af-gate">
+            <div class="af-gate__head">
+              <h3 class="af-gate__id">G1</h3>
+              <span class="af-gate__terminal">T1</span>
+            </div>
+            <p class="af-gate__name af-skeleton af-skeleton--text" aria-hidden="true"></p>
+            <p class="af-gate__threshold">Umbral <span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
+            <div class="af-gate__stats">
+              <p><span class="af-gate__stat-label">Salidas</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
+              <p><span class="af-gate__stat-label">Superan</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
+            </div>
+            <div class="af-gate__bar" aria-hidden="true"><span></span></div>
+            <p class="af-gate__percent af-skeleton af-skeleton--short" aria-hidden="true"></p>
+          </article>
+          <article class="af-gate">
+            <div class="af-gate__head">
+              <h3 class="af-gate__id">G2</h3>
+              <span class="af-gate__terminal">T2</span>
+            </div>
+            <p class="af-gate__name af-skeleton af-skeleton--text" aria-hidden="true"></p>
+            <p class="af-gate__threshold">Umbral <span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
+            <div class="af-gate__stats">
+              <p><span class="af-gate__stat-label">Salidas</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
+              <p><span class="af-gate__stat-label">Superan</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
+            </div>
+            <div class="af-gate__bar" aria-hidden="true"><span></span></div>
+            <p class="af-gate__percent af-skeleton af-skeleton--short" aria-hidden="true"></p>
+          </article>
+          <article class="af-gate">
+            <div class="af-gate__head">
+              <h3 class="af-gate__id">G3</h3>
+              <span class="af-gate__terminal">T3</span>
+            </div>
+            <p class="af-gate__name af-skeleton af-skeleton--text" aria-hidden="true"></p>
+            <p class="af-gate__threshold">Umbral <span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
+            <div class="af-gate__stats">
+              <p><span class="af-gate__stat-label">Salidas</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
+              <p><span class="af-gate__stat-label">Superan</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
+            </div>
+            <div class="af-gate__bar" aria-hidden="true"><span></span></div>
+            <p class="af-gate__percent af-skeleton af-skeleton--short" aria-hidden="true"></p>
+          </article>
+          <article class="af-gate">
+            <div class="af-gate__head">
+              <h3 class="af-gate__id">G4</h3>
+              <span class="af-gate__terminal">T4</span>
+            </div>
+            <p class="af-gate__name af-skeleton af-skeleton--text" aria-hidden="true"></p>
+            <p class="af-gate__threshold">Umbral <span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
+            <div class="af-gate__stats">
+              <p><span class="af-gate__stat-label">Salidas</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
+              <p><span class="af-gate__stat-label">Superan</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
+            </div>
+            <div class="af-gate__bar" aria-hidden="true"><span></span></div>
+            <p class="af-gate__percent af-skeleton af-skeleton--short" aria-hidden="true"></p>
+          </article>
+          <article class="af-gate">
+            <div class="af-gate__head">
+              <h3 class="af-gate__id">G5</h3>
+              <span class="af-gate__terminal">T5</span>
+            </div>
+            <p class="af-gate__name af-skeleton af-skeleton--text" aria-hidden="true"></p>
+            <p class="af-gate__threshold">Umbral <span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
+            <div class="af-gate__stats">
+              <p><span class="af-gate__stat-label">Salidas</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
+              <p><span class="af-gate__stat-label">Superan</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
+            </div>
+            <div class="af-gate__bar" aria-hidden="true"><span></span></div>
+            <p class="af-gate__percent af-skeleton af-skeleton--short" aria-hidden="true"></p>
+          </article>
+        </div>
+      </section>
+
+      <section class="af-section" aria-labelledby="evolution-title">
+        <div class="af-section__head">
+          <div>
+            <h2 class="af-section__title" id="evolution-title">Evolución de salidas</h2>
+            <p class="af-section__subtitle">Hora efectiva en UTC.</p>
+          </div>
+          <div class="af-segmented" role="group" aria-label="Intervalo de la gráfica">
+            <button class="af-segmented__button is-active" type="button" disabled>Hora</button>
+            <button class="af-segmented__button" type="button" disabled>Día</button>
+          </div>
+        </div>
+
+        <div class="af-card af-chart" id="evolution" aria-busy="true">
+          <div class="af-chart__placeholder" aria-label="Esperando datos de evolución">
+            <div class="af-chart__bars" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <p class="af-chart__loading">Cargando evolución…</p>
+          </div>
+          <div class="af-chart__legend">
+            <span class="af-legend__item"><span class="af-legend__swatch af-legend__swatch--base"></span>Bajo umbral</span>
+            <span class="af-legend__item"><span class="af-legend__swatch af-legend__swatch--over"></span>Supera umbral</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="af-section" aria-labelledby="departures-title">
+        <div class="af-section__head">
+          <div>
+            <h2 class="af-section__title" id="departures-title">Últimas salidas</h2>
+            <p class="af-section__subtitle">Los registros más recientes almacenados en MongoDB.</p>
+          </div>
+        </div>
+
+        <div class="af-card af-table-card">
+          <div class="af-filters" aria-label="Filtros de la página actual">
+            <label class="af-field">
+              <span class="af-field__label">Puerta</span>
+              <select class="af-select" disabled><option>Todas</option></select>
+            </label>
+            <label class="af-field">
+              <span class="af-field__label">Compañía</span>
+              <select class="af-select" disabled><option>Todas</option></select>
+            </label>
+            <label class="af-field">
+              <span class="af-field__label">Destino</span>
+              <select class="af-select" disabled><option>Todos</option></select>
+            </label>
+            <label class="af-check">
+              <input type="checkbox" disabled />
+              <span>Solo superaciones</span>
+            </label>
+            <button class="af-button af-button--ghost" type="button" disabled>Limpiar</button>
+          </div>
+
+          <div class="af-table-wrap">
+            <table class="af-table">
+              <caption class="af-visually-hidden">
+                Últimas salidas almacenadas, con vuelo, compañía, destino, puerta,
+                horas programada y efectiva, retraso, umbral y estado.
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Vuelo</th>
+                  <th scope="col">Compañía</th>
+                  <th scope="col">Destino</th>
+                  <th scope="col">Puerta</th>
+                  <th scope="col">Programada</th>
+                  <th scope="col">Efectiva</th>
+                  <th scope="col">Retraso</th>
+                  <th scope="col">Umbral</th>
+                  <th scope="col">Estado</th>
+                </tr>
+              </thead>
+              <tbody id="departures-body" aria-busy="true">
+                <tr>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                </tr>
+                <tr>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                </tr>
+                <tr>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                </tr>
+                <tr>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                </tr>
+                <tr>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--text" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                  <td><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="af-pagination">
+            <button class="af-button af-button--ghost" type="button" disabled>Anterior</button>
+            <span class="af-pagination__status">Cargando página…</span>
+            <button class="af-button af-button--ghost" type="button" disabled>Siguiente</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="af-footer">
+      <p>AeroFlow · Monitorización en UTC · Actualización automática cada 5 s</p>
+    </footer>
+
+    <noscript>
+      <div class="af-banner af-banner--error">
+        Esta página necesita JavaScript para consultar la API de AeroFlow.
+      </div>
+    </noscript>
+  </body>
+</html>

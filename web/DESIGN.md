@@ -51,7 +51,7 @@ Debe permitir:
 | Tema | Decisión |
 |---|---|
 | Stack | HTML + CSS + JavaScript nativo con módulos ES, sin build |
-| Servidor | FastAPI sirve `web/` con `StaticFiles`; API bajo `/api/*` |
+| Servidor | FastAPI sirve `web/`; `GET /` devuelve el HTML y `/assets/*` los estáticos |
 | Navegación | Una página + cajón lateral derecho; `?panel=config` lo abre |
 | Tema | Claro operativo: cabecera azul marino, tarjetas blancas, avisos ámbar/rojo |
 | Tipografía | Inter desde Google Fonts con fallback al sistema |
@@ -1055,6 +1055,8 @@ FastAPI añade:
 - Crear `web/index.html`, `web/assets/styles.css`.
 - Tokens, cabecera, rejilla, tarjetas y estados vacíos.
 - Montar `StaticFiles` en FastAPI.
+
+Estado: completada. `GET /` sirve `web/index.html`, `GET /assets/*` sirve los estáticos y la API conserva `/api/*` sin quedar tapada por el montaje.
 
 ### Fase 3 · Cliente API, estado y polling
 
