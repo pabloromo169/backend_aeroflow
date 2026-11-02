@@ -6,6 +6,7 @@ import {
   formatPercent,
   utcIsoToDatetimeLocal,
 } from "./format.js";
+import { announce } from "./render.js";
 
 const TIME_BANDS = ["night", "morning", "afternoon", "evening"];
 const BAND_LABELS = {
@@ -41,8 +42,12 @@ export function createConfigForm({ refs, dialogs, onCreated }) {
   refs.drawerSave?.addEventListener("click", () => void save());
   refs.configCopy?.addEventListener("click", () => void copyJson());
   refs.formSeedRandom?.addEventListener("click", () => {
-    if (refs.formSeed) refs.formSeed.value = "";
+    if (!refs.formSeed) return;
+    refs.formSeed.value = String(randomSeed());
     markDirty();
+    updatePreview();
+    announce("Semilla aleatoria generada", refs);
+    refs.formSeed.focus();
   });
 
   refs.formNew?.addEventListener("input", () => {
@@ -505,4 +510,13 @@ function validate(payload) {
     }
   }
   return null;
+}
+
+function randomSeed() {
+  if (globalThis.crypto?.getRandomValues) {
+    const values = new Uint32Array(2);
+    globalThis.crypto.getRandomValues(values);
+    return (values[0] * 0x200000) + (values[1] >>> 11);
+  }
+  return Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
 }

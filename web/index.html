@@ -410,15 +410,15 @@
                   <span class="af-field__error" data-error-for="publish_interval_ms"></span>
                 </label>
               </div>
-              <label class="af-field">
-                <span class="af-field__label">Semilla</span>
+              <div class="af-field">
+                <label class="af-field__label" for="form-seed">Semilla</label>
                 <span class="af-field-row">
                   <input class="af-input" id="form-seed" name="random_seed" type="number" min="0" step="1" />
                   <button class="af-button af-button--ghost" type="button" id="form-seed-random">Generar nueva</button>
                 </span>
-                <span class="af-field__hint">Vacía el campo para que el backend asigne una semilla aleatoria.</span>
+                <span class="af-field__hint">«Generar nueva» crea una semilla aleatoria en el navegador; vacía el campo para que la asigne el backend.</span>
                 <span class="af-field__error" data-error-for="random_seed"></span>
-              </label>
+              </div>
             </fieldset>
 
             <fieldset class="af-fieldset">

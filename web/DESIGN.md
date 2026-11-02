@@ -596,8 +596,9 @@ La pestaña activa se conserva mientras el cajón está abierto, pero no en la U
 - `simulation_days`: entero 7–31.
 - `total_operations`: entero 100–100000.
 - `publish_interval_ms`: entero 0–60000.
-- `random_seed`: entero ≥ 0, heredado, con botón `Generar nueva`; si se vacía, se
-  envía `null` y el backend asigna una.
+- `random_seed`: entero ≥ 0, heredado, con botón `Generar nueva` que rellena el campo
+  con una semilla aleatoria de 53 bits en el navegador; si se vacía, se envía `null` y
+  el backend asigna una.
 
 **Puertas**
 
