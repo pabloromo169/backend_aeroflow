@@ -12,7 +12,7 @@ function renderSimulationSelect(state, select) {
   if (!select) return;
   const simulations = orderedSimulations(state.simulations);
   const signature = simulations
-    .map((item) => `${item.simulation_id}:${item.name}:${item.stored_departures}`)
+    .map((item) => `${item.simulation_id}:${item.name}`)
     .join("|");
 
   if (select.dataset.signature !== signature) {

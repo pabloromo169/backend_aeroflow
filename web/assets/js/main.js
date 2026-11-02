@@ -287,6 +287,25 @@ window.addEventListener("popstate", () => {
     gatePier.render(state, selectedGate);
     selectSimulation(state, next);
     void poller.refresh();
+    return;
+  }
+  const page = Number.parseInt(params.get("page") || "1", 10);
+  if (Number.isFinite(page) && page > 0 && page !== state.page) {
+    state.page = page;
+    void poller.refresh();
+  }
+  const interval = params.get("interval") === "day" ? "day" : "hour";
+  if (interval !== state.interval) {
+    state.interval = interval;
+    syncIntervalButtons(interval);
+    void poller.refresh();
+  }
+  const wantConfig = params.get("panel") === "config";
+  if (wantConfig && !dialogs.isDrawerOpen()) {
+    state.panel = "config";
+    void configPanel.open();
+  } else if (!wantConfig && dialogs.isDrawerOpen()) {
+    dialogs.closeDrawer({ force: true });
   }
 });
 
