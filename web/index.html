@@ -45,13 +45,13 @@
           </div>
 
           <div class="af-header__actions">
-            <button class="af-button af-button--header" type="button" disabled>
+            <button class="af-button af-button--header" type="button" id="refresh-button">
               Actualizar
             </button>
-            <button class="af-button af-button--header" type="button" disabled>
+            <button class="af-button af-button--header" type="button" id="config-button" title="Consulta la configuración guardada">
               Configurar
             </button>
-            <button class="af-button af-button--header af-button--accent" type="button" disabled>
+            <button class="af-button af-button--header af-button--accent" type="button" id="run-button" disabled>
               Arrancar
             </button>
           </div>
@@ -333,6 +333,87 @@
     <footer class="af-footer">
       <p>AeroFlow · Monitorización en UTC · Actualización automática cada 5 s</p>
     </footer>
+
+    <dialog class="af-dialog" id="confirm-dialog" aria-labelledby="confirm-title">
+      <form method="dialog" class="af-dialog__body">
+        <h2 class="af-dialog__title" id="confirm-title">Confirmar acción</h2>
+        <p class="af-dialog__message" id="confirm-message"></p>
+        <div class="af-dialog__actions">
+          <button class="af-button af-button--ghost" value="cancel">Cancelar</button>
+          <button class="af-button af-button--accent" id="confirm-accept" value="confirm">
+            Confirmar
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="af-drawer" id="config-drawer" aria-labelledby="drawer-title">
+      <div class="af-drawer__panel">
+        <header class="af-drawer__header">
+          <div>
+            <p class="af-drawer__eyebrow">Simulación seleccionada</p>
+            <h2 class="af-drawer__title" id="drawer-title">Configuración</h2>
+          </div>
+          <button class="af-icon-button" type="button" id="drawer-close" aria-label="Cerrar configuración">
+            ×
+          </button>
+        </header>
+
+        <div class="af-drawer__tabs" role="tablist" aria-label="Secciones de configuración">
+          <button
+            class="af-drawer__tab is-active"
+            type="button"
+            role="tab"
+            aria-selected="true"
+            aria-controls="drawer-current"
+            id="tab-current"
+          >
+            Configuración actual
+          </button>
+          <button
+            class="af-drawer__tab"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            disabled
+            title="Disponible al completar el formulario de alta"
+          >
+            Nueva simulación
+          </button>
+        </div>
+
+        <div class="af-drawer__body">
+          <p class="af-drawer__loading" id="drawer-loading">Cargando configuración…</p>
+          <div class="af-banner af-banner--error af-banner--inline" id="drawer-error" role="alert" hidden>
+            <span class="af-banner__icon" aria-hidden="true">!</span>
+            <p class="af-banner__text"></p>
+          </div>
+
+          <div id="drawer-current" role="tabpanel" aria-labelledby="tab-current" hidden>
+            <dl class="af-facts" id="config-facts"></dl>
+            <h3 class="af-drawer__section-title">Puertas</h3>
+            <ul class="af-gate-list" id="config-gates"></ul>
+            <h3 class="af-drawer__section-title">Catálogos fijos</h3>
+            <p class="af-drawer__note" id="config-catalogs"></p>
+            <details class="af-details">
+              <summary>JSON completo de la configuración</summary>
+              <pre class="af-json" id="config-json"></pre>
+            </details>
+          </div>
+        </div>
+
+        <footer class="af-drawer__footer">
+          <button class="af-button af-button--ghost" type="button" id="drawer-dismiss">
+            Cerrar
+          </button>
+          <button class="af-button af-button--accent" type="button" disabled title="Disponible con el formulario de alta">
+            Duplicar como nueva
+          </button>
+        </footer>
+      </div>
+    </dialog>
+
+    <div class="af-toasts" id="toast-region" aria-live="polite"></div>
 
     <noscript>
       <div class="af-banner af-banner--error">
