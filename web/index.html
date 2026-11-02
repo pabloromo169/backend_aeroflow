@@ -301,16 +301,18 @@
     </footer>
 
     <dialog class="af-dialog" id="confirm-dialog" aria-labelledby="confirm-title">
-      <form method="dialog" class="af-dialog__body">
+      <div class="af-dialog__body">
         <h2 class="af-dialog__title" id="confirm-title">Confirmar acción</h2>
         <p class="af-dialog__message" id="confirm-message"></p>
         <div class="af-dialog__actions">
-          <button class="af-button af-button--ghost" value="cancel">Cancelar</button>
-          <button class="af-button af-button--accent" id="confirm-accept" value="confirm">
+          <button class="af-button af-button--ghost" type="button" id="confirm-cancel">
+            Cancelar
+          </button>
+          <button class="af-button af-button--accent" type="button" id="confirm-accept">
             Confirmar
           </button>
         </div>
-      </form>
+      </div>
     </dialog>
 
     <dialog class="af-drawer" id="config-drawer" aria-labelledby="drawer-title">

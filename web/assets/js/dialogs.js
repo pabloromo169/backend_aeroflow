@@ -13,16 +13,34 @@ export function initDialogs({ onConfigOpen, onConfigClose } = {}) {
     dialog.querySelector("#confirm-title").textContent = title;
     dialog.querySelector("#confirm-message").textContent = message;
     const accept = dialog.querySelector("#confirm-accept");
+    const cancel = dialog.querySelector("#confirm-cancel");
     accept.textContent = acceptLabel;
     accept.className =
       tone === "danger" ? "af-button af-button--danger" : "af-button af-button--accent";
     return new Promise((resolve) => {
-      const handleClose = () => {
+      function cleanup(result) {
         dialog.removeEventListener("close", handleClose);
-        resolve(dialog.returnValue === "confirm");
-      };
+        accept.removeEventListener("click", handleAccept);
+        cancel.removeEventListener("click", handleCancel);
+        if (dialog.open) dialog.close();
+        resolve(result);
+      }
+      function handleClose() {
+        cleanup(confirmed);
+      }
+      function handleAccept() {
+        confirmed = true;
+        cleanup(true);
+      }
+      function handleCancel() {
+        cleanup(false);
+      }
+      let confirmed = false;
       dialog.addEventListener("close", handleClose);
+      accept.addEventListener("click", handleAccept);
+      cancel.addEventListener("click", handleCancel);
       dialog.showModal();
+      accept.focus();
     });
   }
 

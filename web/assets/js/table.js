@@ -78,6 +78,11 @@ export function createTable({ refs, onChange, onPageChange, onClearGate }) {
     const totalPages = pageCount(total);
     lastPage = state.page;
 
+    if (total > 0 && state.page > totalPages) {
+      onPageChange?.(totalPages);
+      return;
+    }
+
     const signature = JSON.stringify({
       items,
       total,
