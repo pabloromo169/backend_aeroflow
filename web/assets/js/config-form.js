@@ -145,7 +145,7 @@ export function createConfigForm({ refs, dialogs, onCreated }) {
     renderGates(defaults.gates);
     defaults.destinations = config.destinations.map((destination) => ({
       id: destination.destination_id,
-      label: `${destination.destination_id} · ${destination.name}`,
+      label: `${destination.destination_id}, ${destination.name}`,
     }));
     defaults.timeBands = TIME_BANDS.map((band) => ({ id: band, label: BAND_LABELS[band] }));
     defaults.profiles = structuredClone(config.generation_profiles);
@@ -165,7 +165,7 @@ export function createConfigForm({ refs, dialogs, onCreated }) {
       ...gates.map((gate, index) => {
         const row = document.createElement("tr");
         const name = document.createElement("td");
-        name.textContent = `${gate.gate_id} · ${gate.name}`;
+        name.textContent = `${gate.gate_id}, ${gate.name}`;
 
         const terminalCell = document.createElement("td");
         const terminal = document.createElement("select");
@@ -298,7 +298,7 @@ export function createConfigForm({ refs, dialogs, onCreated }) {
     const count = (value) => Object.keys(value ?? {}).length;
     const profiles = defaults.profiles ?? {};
     refs.formProfilesSummary.textContent = [
-      `Perfiles: ${defaults.gates.length} puertas · ${count(profiles.destination_volume_weights)} destinos con peso propio · ${count(profiles.time_band_volume_weights)} franjas con peso propio.`,
+      `Perfiles: ${defaults.gates.length} puertas, ${count(profiles.destination_volume_weights)} destinos con peso propio y ${count(profiles.time_band_volume_weights)} franjas con peso propio.`,
       "Las claves vacías usan el valor neutro 1.",
     ].join(" ");
   }

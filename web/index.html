@@ -3,30 +3,29 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#12324a" />
+    <meta name="theme-color" content="#f8f9fc" />
     <meta
       name="description"
       content="Centro de control de AeroFlow: estado de las cinco puertas, evolución de salidas y últimas operaciones."
     />
-    <title>AeroFlow · Centro de control</title>
+    <title>AeroFlow. Centro de control</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap"
     />
     <link rel="stylesheet" href="/assets/styles.css" />
   </head>
   <body>
     <a class="af-skip-link" href="#contenido">Saltar al contenido</a>
+
     <header class="af-header">
-      <div class="af-header__inner">
+      <div class="af-header__inner af-container">
         <div class="af-header__brand">
-          <span class="af-header__mark" aria-hidden="true">AF</span>
-          <div>
-            <p class="af-header__eyebrow">AeroFlow</p>
-            <h1 class="af-header__title">Centro de control</h1>
-          </div>
+          <p class="af-wordmark">AeroFlow</p>
+          <span class="af-header__divider" aria-hidden="true"></span>
+          <h1 class="af-header__title">Centro de control</h1>
         </div>
 
         <div class="af-header__controls">
@@ -40,18 +39,28 @@
           <div class="af-header__status">
             <span class="af-pill" id="status-pill" data-state="loading">Cargando</span>
             <span class="af-header__updated" id="last-update">
-              Última actualización: —
+              Última actualización pendiente
             </span>
           </div>
 
           <div class="af-header__actions">
-            <button class="af-button af-button--header" type="button" id="refresh-button">
+            <button class="af-button af-button--key" type="button" id="refresh-button">
               Actualizar
             </button>
-            <button class="af-button af-button--header" type="button" id="config-button" title="Consulta la configuración guardada">
+            <button
+              class="af-button af-button--quiet"
+              type="button"
+              id="config-button"
+              title="Consulta la configuración guardada"
+            >
               Configurar
             </button>
-            <button class="af-button af-button--header af-button--accent" type="button" id="run-button" disabled>
+            <button
+              class="af-button af-button--key af-button--accent"
+              type="button"
+              id="run-button"
+              disabled
+            >
               Arrancar
             </button>
           </div>
@@ -60,24 +69,26 @@
     </header>
 
     <div class="af-visually-hidden" id="live-region" aria-live="polite"></div>
-    <div class="af-banner af-banner--error" id="connection-banner" role="alert" hidden>
-      <span class="af-banner__icon" aria-hidden="true">!</span>
+
+    <div class="af-banner af-banner--error af-container" id="connection-banner" role="alert" hidden>
       <p class="af-banner__text">
         Sin conexión con la API. Se muestran los últimos datos disponibles.
       </p>
     </div>
 
-    <div class="af-banner af-banner--warning" id="partial-banner" hidden>
-      <span class="af-banner__icon" aria-hidden="true">◷</span>
+    <div class="af-banner af-banner--note af-container" id="partial-banner" hidden>
       <p class="af-banner__text">
         Resultados parciales: NiFi sigue insertando. Los contadores pueden crecer.
       </p>
     </div>
 
-    <main class="af-main" id="contenido">
-      <section class="af-section" aria-labelledby="metrics-title">
-        <h2 class="af-visually-hidden" id="metrics-title">Contadores globales</h2>
-        <div class="af-metrics" id="metrics" aria-busy="true">
+    <main class="af-main af-container" id="contenido">
+      <section class="af-section af-section--figures" aria-labelledby="metrics-title">
+        <div class="af-section__head">
+          <h2 class="af-section__title" id="metrics-title">Salidas de la simulación</h2>
+          <p class="af-section__meta" id="figures-meta">Se recalcula cada 5 segundos</p>
+        </div>
+        <div class="af-figures" id="metrics" aria-busy="true">
           <article class="af-metric">
             <p class="af-metric__label">Salidas válidas</p>
             <p class="af-metric__value af-skeleton af-skeleton--number" aria-hidden="true"></p>
@@ -119,10 +130,7 @@
             </div>
             <p class="af-gate__name af-skeleton af-skeleton--text" aria-hidden="true"></p>
             <p class="af-gate__threshold">Umbral <span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
-            <div class="af-gate__stats">
-              <p><span class="af-gate__stat-label">Salidas</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
-              <p><span class="af-gate__stat-label">Superan</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
-            </div>
+            <p class="af-gate__count af-skeleton af-skeleton--number" aria-hidden="true"></p>
             <div class="af-gate__bar" aria-hidden="true"><span></span></div>
             <p class="af-gate__percent af-skeleton af-skeleton--short" aria-hidden="true"></p>
           </article>
@@ -133,10 +141,7 @@
             </div>
             <p class="af-gate__name af-skeleton af-skeleton--text" aria-hidden="true"></p>
             <p class="af-gate__threshold">Umbral <span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
-            <div class="af-gate__stats">
-              <p><span class="af-gate__stat-label">Salidas</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
-              <p><span class="af-gate__stat-label">Superan</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
-            </div>
+            <p class="af-gate__count af-skeleton af-skeleton--number" aria-hidden="true"></p>
             <div class="af-gate__bar" aria-hidden="true"><span></span></div>
             <p class="af-gate__percent af-skeleton af-skeleton--short" aria-hidden="true"></p>
           </article>
@@ -147,10 +152,7 @@
             </div>
             <p class="af-gate__name af-skeleton af-skeleton--text" aria-hidden="true"></p>
             <p class="af-gate__threshold">Umbral <span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
-            <div class="af-gate__stats">
-              <p><span class="af-gate__stat-label">Salidas</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
-              <p><span class="af-gate__stat-label">Superan</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
-            </div>
+            <p class="af-gate__count af-skeleton af-skeleton--number" aria-hidden="true"></p>
             <div class="af-gate__bar" aria-hidden="true"><span></span></div>
             <p class="af-gate__percent af-skeleton af-skeleton--short" aria-hidden="true"></p>
           </article>
@@ -161,10 +163,7 @@
             </div>
             <p class="af-gate__name af-skeleton af-skeleton--text" aria-hidden="true"></p>
             <p class="af-gate__threshold">Umbral <span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
-            <div class="af-gate__stats">
-              <p><span class="af-gate__stat-label">Salidas</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
-              <p><span class="af-gate__stat-label">Superan</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
-            </div>
+            <p class="af-gate__count af-skeleton af-skeleton--number" aria-hidden="true"></p>
             <div class="af-gate__bar" aria-hidden="true"><span></span></div>
             <p class="af-gate__percent af-skeleton af-skeleton--short" aria-hidden="true"></p>
           </article>
@@ -175,10 +174,7 @@
             </div>
             <p class="af-gate__name af-skeleton af-skeleton--text" aria-hidden="true"></p>
             <p class="af-gate__threshold">Umbral <span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
-            <div class="af-gate__stats">
-              <p><span class="af-gate__stat-label">Salidas</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
-              <p><span class="af-gate__stat-label">Superan</span><span class="af-skeleton af-skeleton--short" aria-hidden="true"></span></p>
-            </div>
+            <p class="af-gate__count af-skeleton af-skeleton--number" aria-hidden="true"></p>
             <div class="af-gate__bar" aria-hidden="true"><span></span></div>
             <p class="af-gate__percent af-skeleton af-skeleton--short" aria-hidden="true"></p>
           </article>
@@ -188,8 +184,8 @@
       <section class="af-section" aria-labelledby="evolution-title">
         <div class="af-section__head">
           <div>
-            <h2 class="af-section__title" id="evolution-title">Evolución de salidas</h2>
-            <p class="af-section__subtitle">Hora efectiva en UTC.</p>
+            <h2 class="af-section__title" id="evolution-title">Evolución por hora efectiva</h2>
+            <p class="af-section__subtitle">Base UTC. Cada barra apila las salidas según su retraso.</p>
           </div>
           <div class="af-segmented" role="group" aria-label="Intervalo de la gráfica">
             <button class="af-segmented__button is-active" type="button" data-interval="hour" aria-pressed="true">Hora</button>
@@ -197,7 +193,7 @@
           </div>
         </div>
 
-        <div class="af-card af-chart" id="evolution" aria-busy="true">
+        <div class="af-chart" id="evolution" aria-busy="true">
           <div class="af-chart__placeholder" aria-label="Esperando datos de evolución">
             <div class="af-chart__bars" aria-hidden="true">
               <span></span><span></span><span></span><span></span><span></span><span></span>
@@ -222,11 +218,11 @@
           </div>
           <p class="af-chip" id="gate-filter-chip" hidden>
             <span id="gate-filter-label"></span>
-            <button class="af-chip__clear" type="button" id="gate-filter-clear" aria-label="Quitar filtro de puerta">×</button>
+            <button class="af-chip__clear" type="button" id="gate-filter-clear" aria-label="Quitar filtro de puerta">Quitar</button>
           </p>
         </div>
 
-        <div class="af-card af-table-card">
+        <div class="af-table-block">
           <div class="af-filters" aria-label="Filtros de la página actual">
             <p class="af-filters__scope">Filtros sobre esta página</p>
             <label class="af-field">
@@ -245,7 +241,7 @@
               <input type="checkbox" id="filter-over" />
               <span>Solo superaciones</span>
             </label>
-            <button class="af-button af-button--ghost" type="button" id="filters-clear">Limpiar</button>
+            <button class="af-button af-button--key af-button--quiet" type="button" id="filters-clear">Limpiar</button>
           </div>
 
           <div class="af-table-wrap">
@@ -288,16 +284,16 @@
           </div>
 
           <div class="af-pagination">
-            <button class="af-button af-button--ghost" type="button" id="page-prev" disabled>Anterior</button>
+            <button class="af-button af-button--key af-button--quiet" type="button" id="page-prev" disabled>Anterior</button>
             <span class="af-pagination__status" id="page-status">Cargando página…</span>
-            <button class="af-button af-button--ghost" type="button" id="page-next" disabled>Siguiente</button>
+            <button class="af-button af-button--key af-button--quiet" type="button" id="page-next" disabled>Siguiente</button>
           </div>
         </div>
       </section>
     </main>
 
-    <footer class="af-footer">
-      <p>AeroFlow · Monitorización en UTC · Actualización automática cada 5 s</p>
+    <footer class="af-footer af-container">
+      <p class="af-footer__line">AeroFlow. Monitorización en UTC. Actualización automática cada 5 s.</p>
     </footer>
 
     <dialog class="af-dialog" id="confirm-dialog" aria-labelledby="confirm-title">
@@ -305,10 +301,10 @@
         <h2 class="af-dialog__title" id="confirm-title">Confirmar acción</h2>
         <p class="af-dialog__message" id="confirm-message"></p>
         <div class="af-dialog__actions">
-          <button class="af-button af-button--ghost" type="button" id="confirm-cancel">
+          <button class="af-button af-button--key af-button--quiet" type="button" id="confirm-cancel">
             Cancelar
           </button>
-          <button class="af-button af-button--accent" type="button" id="confirm-accept">
+          <button class="af-button af-button--key af-button--accent" type="button" id="confirm-accept">
             Confirmar
           </button>
         </div>
@@ -319,11 +315,10 @@
       <div class="af-drawer__panel">
         <header class="af-drawer__header">
           <div>
-            <p class="af-drawer__eyebrow">Simulación seleccionada</p>
             <h2 class="af-drawer__title" id="drawer-title">Configuración</h2>
           </div>
           <button class="af-icon-button" type="button" id="drawer-close" aria-label="Cerrar configuración">
-            ×
+            Cerrar
           </button>
         </header>
 
@@ -366,7 +361,7 @@
             <details class="af-details">
               <summary>JSON completo de la configuración</summary>
               <pre class="af-json" id="config-json"></pre>
-              <button class="af-button af-button--ghost af-copy" type="button" id="config-copy">
+              <button class="af-button af-button--key af-button--quiet af-copy" type="button" id="config-copy">
                 Copiar JSON
               </button>
             </details>
@@ -414,7 +409,7 @@
                 <label class="af-field__label" for="form-seed">Semilla</label>
                 <span class="af-field-row">
                   <input class="af-input" id="form-seed" name="random_seed" type="number" min="0" step="1" />
-                  <button class="af-button af-button--ghost" type="button" id="form-seed-random">Generar nueva</button>
+                  <button class="af-button af-button--key af-button--quiet" type="button" id="form-seed-random">Generar nueva</button>
                 </span>
                 <span class="af-field__hint">«Generar nueva» crea una semilla aleatoria en el navegador; vacía el campo para que la asigne el backend.</span>
                 <span class="af-field__error" data-error-for="random_seed"></span>
@@ -460,18 +455,19 @@
               <details class="af-details">
                 <summary>JSON que se enviará</summary>
                 <pre class="af-json" id="form-json"></pre>
-              </details>            </details>
+              </details>
+            </details>
           </form>
         </div>
 
         <footer class="af-drawer__footer">
-          <button class="af-button af-button--ghost" type="button" id="drawer-dismiss">
+          <button class="af-button af-button--key af-button--quiet" type="button" id="drawer-dismiss">
             Cerrar
           </button>
-          <button class="af-button af-button--ghost" type="button" id="drawer-duplicate">
+          <button class="af-button af-button--key af-button--quiet" type="button" id="drawer-duplicate">
             Duplicar como nueva
           </button>
-          <button class="af-button af-button--accent" type="button" id="drawer-save" hidden>
+          <button class="af-button af-button--key af-button--accent" type="button" id="drawer-save" hidden>
             Guardar
           </button>
         </footer>
@@ -481,7 +477,7 @@
     <div class="af-toasts" id="toast-region" aria-live="polite"></div>
 
     <noscript>
-      <div class="af-banner af-banner--error">
+      <div class="af-banner af-banner--error af-container">
         Esta página necesita JavaScript para consultar la API de AeroFlow.
       </div>
     </noscript>

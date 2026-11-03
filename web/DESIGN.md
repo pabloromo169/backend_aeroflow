@@ -53,8 +53,8 @@ Debe permitir:
 | Stack | HTML + CSS + JavaScript nativo con módulos ES, sin build |
 | Servidor | FastAPI sirve `web/`; `GET /` devuelve el HTML y `/assets/*` los estáticos |
 | Navegación | Una página + cajón lateral derecho; `?panel=config` lo abre |
-| Tema | Claro operativo: cabecera azul marino, tarjetas blancas, avisos ámbar/rojo |
-| Tipografía | Inter desde Google Fonts con fallback al sistema |
+| Tema | Claro editorial: papel claro, tinta grafito, señal cobalto, avisos ámbar/rojo |
+| Tipografía | Familjen Grotesk (títulos), IBM Plex Sans (texto) y JetBrains Mono (cifras), desde Google Fonts |
 | Formulario | Campos estructurados + bloque avanzado plegable + JSON de solo lectura |
 | Destinos | Catálogo fijo `DEST-01`…`DEST-04`, siempre en solo lectura |
 | Terminales | Reasignables entre puertas, manteniendo biyección T1–T5 |
@@ -302,79 +302,80 @@ App
 | `dialogs.js` | Confirmaciones, foco atrapado y toasts |
 | `format.js` | Fechas UTC, minutos, porcentajes y textos |
 
-Sin dependencias externas de JavaScript. Inter se carga desde Google Fonts.
+Sin dependencias externas de JavaScript. Las tres familias tipográficas se cargan desde Google Fonts.
 
 ---
 
 ## 8. Lenguaje visual
 
-### 8.1. Paleta
+### 8.1. Tokens
+
+El sistema visual vive en tres archivos encadenados:
+
+- `web/assets/tokens.css`: escala espacial, tipográfica, de movimiento, colores en
+  `oklch`, sombras y planos de apilado.
+- `web/assets/base.css`: reinicio, tipografía base, contenedor y utilidades.
+- `web/assets/styles.css`: componentes `af-*`, importando los dos anteriores.
 
 ```css
 :root {
-  --af-navy: #12324a;
-  --af-navy-strong: #0d2638;
-  --af-bg: #f4f6f8;
-  --af-surface: #ffffff;
-  --af-ink: #17212b;
-  --af-muted: #5b6b7a;
-  --af-border: #d7dee5;
-  --af-focus: #1d4ed8;
-  --af-live: #166534;
-  --af-live-soft: #dcfce7;
-  --af-warn: #b45309;
-  --af-warn-soft: #fef3c7;
-  --af-danger: #b91c1c;
-  --af-danger-soft: #fee2e2;
-  --af-info-soft: #e0f2fe;
+  --color-paper: oklch(98.6% 0.005 250);
+  --color-paper-2: oklch(96.2% 0.008 252);
+  --color-ink: oklch(21% 0.028 262);
+  --color-muted: oklch(50% 0.018 258);
+  --color-rule: oklch(90% 0.009 252);
+  --color-accent: oklch(52% 0.19 258);
+  --color-accent-wash: oklch(95% 0.028 256);
+  --color-error: oklch(52% 0.19 27);
+  --color-success: oklch(50% 0.12 150);
 }
 ```
 
-La cabecera usa `--af-navy` con texto blanco. El contenido va sobre `--af-bg` y las
-tarjetas sobre `--af-surface`. Los estados usan siempre icono y texto:
+La cabecera es una barra clara fija con borde inferior, sin bloque de color. El
+contenido va sobre `--color-paper` y los bloques se separan con reglas de 1 px en
+lugar de tarjetas. Los estados usan siempre icono y texto:
 
-- **En directo:** verde `--af-live`, icono de punto.
-- **Parcial:** ámbar `--af-warn`, icono de reloj.
-- **Sin conexión:** rojo `--af-danger`, icono de alerta.
-- **Supera umbral:** fondo `--af-warn-soft`, borde ámbar y etiqueta «⚠ Supera».
-- **Bajo umbral:** sin color de alarma, etiqueta «Dentro del umbral».
+- **En directo:** verde `oklch(45% 0.09 155)`, punto relleno.
+- **Parcial:** ámbar `oklch(48% 0.1 70)`, punto relleno.
+- **Sin conexión:** rojo `--color-error`, punto relleno.
+- **Supera umbral:** fila sobre lavado cobalto, borde izquierdo de 3 px y etiqueta
+  «Supera el umbral» con icono SVG.
+- **Bajo umbral:** etiqueta «Dentro del umbral» con icono de marca, en gris.
 
 ### 8.2. Tipografía
 
-- Familia: `Inter`, con fallback `system-ui, -apple-system, "Segoe UI", Roboto,
-  sans-serif`.
+- Títulos: `Familjen Grotesk` 500/600, tracking negativo.
+- Texto y tablas: `IBM Plex Sans` 400/500.
+- Cifras y metadatos técnicos: `JetBrains Mono` 400/500.
+- Fallbacks: `system-ui`, `sans-serif` y `ui-monospace`.
 - Carga: Google Fonts con `display=swap`.
-- Tamaños:
-  - Título de página: 24 px / 1.2.
-  - Título de bloque: 16 px / 1.3, semibold.
-  - Cuerpo y tablas: 14 px / 1.45.
-  - Metadatos y ayudas: 12 px / 1.4.
-  - Cifras grandes de tarjeta: 30 px / 1.1, tabular.
-- Los números usan `font-variant-numeric: tabular-nums`.
+- Escala modular: 12, 14, 16, 19, 23, 28, 33 px.
+- Todos los números usan `font-variant-numeric: tabular-nums`.
 
 ### 8.3. Espaciado y forma
 
-- Escala de 4 px: 4, 8, 12, 16, 24, 32, 48.
-- Radio de tarjeta: 12 px; botones: 8 px; pills: 999 px.
-- Sombra suave solo en cabecera fija y cajón; el resto usa borde de 1 px.
-- Ancho máximo del contenido: 1440 px.
-- Márgenes laterales: 24 px en escritorio, 16 px en tablet, 12 px en móvil.
+- Escala de 4 px con pasos 2, 4, 8, 12, 16, 24, 40, 64, 96, 144.
+- Radio de tarjeta 8 px; campos 6 px; pills 999 px.
+- Botones tipo tecla: borde, sombra inferior de 3 px y desplazamiento al pulsar.
+- Ancho máximo del contenido: 1440 px con canaleta de 64 px, 24 px y 16 px.
+- Sin sombras difusas salvo diálogo, cajón y toasts; el resto usa reglas.
 
 ### 8.4. Rejilla
 
-- Métricas: 4 columnas → 2 → 2 → 1.
+- Métricas: cuatro columnas separadas por reglas → 2 → 1.
 - Puertas: 5 columnas → 3 → 2 → 1.
 - Gráfica y tabla: ancho completo.
-- Breakpoints: 1200 px, 1024 px, 720 px, 480 px.
-- La tabla conserva su estructura y hace scroll horizontal en pantallas pequeñas.
+- Breakpoints: 1200 px, 960 px y 640 px.
+- La tabla conserva sus nueve columnas y hace scroll horizontal en pantallas
+  pequeñas.
 
 ### 8.5. CSS
 
-- BEM ligero con prefijo `af-`: `af-card`, `af-card__title`,
-  `af-card--alert`.
-- Variables CSS para todos los tokens.
+- BEM ligero con prefijo `af-`: `af-metric`, `af-gate__count`, `af-button--key`.
+- Variables CSS para todos los tokens; los componentes no repiten valores.
 - Sin utilidades tipo Tailwind ni estilos inline, salvo valores calculados en SVG.
 - `prefers-reduced-motion` desactiva transiciones no esenciales.
+- Estados de carga con esqueletos y atenuación de bloques obsoletos.
 
 ---
 
@@ -1053,7 +1054,8 @@ FastAPI añade:
 
 ### Fase 2 · Shell y estilos
 
-- Crear `web/index.html`, `web/assets/styles.css`.
+- Crear `web/index.html`, `web/assets/tokens.css`, `web/assets/base.css` y
+  `web/assets/styles.css`.
 - Tokens, cabecera, rejilla, tarjetas y estados vacíos.
 - Montar `StaticFiles` en FastAPI.
 

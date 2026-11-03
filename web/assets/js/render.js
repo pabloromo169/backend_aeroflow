@@ -25,7 +25,7 @@ function renderSimulationSelect(state, select) {
     } else {
       for (const item of simulations) {
         select.append(
-          new Option(`${item.simulation_id} · ${item.name}`, item.simulation_id),
+          new Option(`${item.simulation_id}, ${item.name}`, item.simulation_id),
         );
       }
     }
@@ -38,7 +38,7 @@ function renderSimulationSelect(state, select) {
   }
   const item = selectedSimulation(state);
   select.title = item
-    ? `${item.simulation_id} · ${item.name} · ${item.stored_departures} salidas almacenadas`
+    ? `${item.simulation_id}, ${item.name}, ${item.stored_departures} salidas almacenadas`
     : "";
 }
 
@@ -66,8 +66,8 @@ function renderStatus(state, refs) {
   if (update) {
     const stamp = state.lastGoodCycleAt;
     update.textContent = stamp
-      ? `Última actualización: ${formatTimeSeconds(stamp)}`
-      : "Última actualización: —";
+      ? `Actualizado ${formatTimeSeconds(stamp)}`
+      : "Sin actualizar todavía";
   }
 }
 
@@ -80,7 +80,7 @@ function renderBanners(state, refs) {
       const text = connection.querySelector(".af-banner__text");
       if (text) {
         const lastGood = state.lastGoodCycleAt
-          ? ` Último dato correcto: ${formatTimeSeconds(state.lastGoodCycleAt)}.`
+          ? ` Último dato correcto ${formatTimeSeconds(state.lastGoodCycleAt)}.`
           : "";
         text.textContent = `Sin conexión con la API. Se muestran los últimos datos disponibles.${lastGood}`;
       }

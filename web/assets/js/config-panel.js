@@ -49,7 +49,7 @@ export function createConfigPanel({ refs, dialogs }) {
   return { open, reload, load, current: () => lastConfig };
 }
 function render(config, refs, simulationId) {
-  refs.drawerTitle.textContent = `${config.simulation_id} · ${config.name}`;
+  refs.drawerTitle.textContent = `${config.simulation_id}, ${config.name}`;
   refs.drawerCurrent.hidden = false;
 
   const simulation = refs.state.simulations.find(
@@ -92,7 +92,7 @@ function render(config, refs, simulationId) {
       item.className = "af-gate-list__item";
       const heading = document.createElement("span");
       heading.className = "af-gate-list__id";
-      heading.textContent = `${gate.gate_id} · ${gate.terminal_id}`;
+      heading.textContent = `${gate.gate_id}, ${gate.terminal_id}`;
       const name = document.createElement("span");
       name.className = "af-gate-list__name";
       name.textContent = gate.name;
@@ -106,7 +106,7 @@ function render(config, refs, simulationId) {
 
   const destinations = config.destinations
     .map((destination) => `${destination.destination_id} (${destination.name})`)
-    .join(" · ");
+    .join(", ");
   refs.configCatalogs.textContent = [
     `Destinos fijos: ${destinations}`,
     `Compañías: ${config.airlines.map((airline) => airline.airline).join(", ")}`,

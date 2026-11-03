@@ -99,7 +99,8 @@ export function createGatePier({ container, onGateSelect }) {
         button.type = "button";
         button.className = "af-gate";
         if (activeGate === gate.gate_id) button.classList.add("is-filtered");
-        button.dataset.gate = gate.gate_id;        button.setAttribute(
+        button.dataset.gate = gate.gate_id;
+        button.setAttribute(
           "aria-label",
           `Puerta ${gate.gate_id}, terminal ${gate.terminal_id}, umbral ${gate.delay_threshold_minutes} minutos, ${gate.valid_departures} salidas, ${gate.above_threshold} superaciones, ${empty ? "sin porcentaje" : formatPercent(gate.above_threshold_percentage, 1)}. Filtrar la tabla por esta puerta.`,
         );
@@ -123,12 +124,19 @@ export function createGatePier({ container, onGateSelect }) {
         threshold.className = "af-gate__threshold";
         threshold.textContent = `Umbral ${formatMinutes(gate.delay_threshold_minutes)}`;
 
-        const stats = document.createElement("div");
-        stats.className = "af-gate__stats";
-        stats.append(
-          stat("Salidas", empty ? "0" : formatNumber(gate.valid_departures)),
-          stat("Superan", empty ? "0" : formatNumber(gate.above_threshold)),
-        );
+        const count = document.createElement("p");
+        count.className = "af-gate__count";
+        count.textContent = empty ? "0" : formatNumber(gate.valid_departures);
+
+        const caption = document.createElement("p");
+        caption.className = "af-gate__count-label";
+        caption.textContent = "salidas";
+
+        const above = document.createElement("p");
+        above.className = "af-gate__above";
+        above.textContent = empty
+          ? "0 superan el umbral"
+          : `${formatNumber(gate.above_threshold)} superan el umbral`;
 
         const bar = document.createElement("div");
         bar.className = "af-gate__bar";
@@ -142,10 +150,10 @@ export function createGatePier({ container, onGateSelect }) {
         const percent = document.createElement("p");
         percent.className = "af-gate__percent";
         percent.textContent = empty
-          ? "—"
-          : `${formatPercent(gate.above_threshold_percentage, 1)} por encima`;
+          ? "Sin salidas registradas"
+          : `${formatPercent(gate.above_threshold_percentage, 1)} del total`;
 
-        button.append(head, name, threshold, stats, bar, percent);
+        button.append(head, name, threshold, count, caption, above, bar, percent);
         button.addEventListener("click", () => onGateSelect?.(gate.gate_id));
         return button;
       }),
@@ -157,17 +165,6 @@ export function createGatePier({ container, onGateSelect }) {
   }
 
   return { render, reset };
-}
-
-function stat(label, value) {
-  const paragraph = document.createElement("p");
-  const caption = document.createElement("span");
-  caption.className = "af-gate__stat-label";
-  caption.textContent = label;
-  const number = document.createElement("span");
-  number.textContent = value;
-  paragraph.append(caption, number);
-  return paragraph;
 }
 
 function emptyMessage(text) {

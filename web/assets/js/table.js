@@ -195,14 +195,14 @@ function row(flight) {
   const tr = document.createElement("tr");
   if (flight.exceeds_threshold) tr.classList.add("is-over");
 
-  const flightNumber = cell(flight.flight_number || "—");
+  const flightNumber = cell(flight.flight_number || "Sin dato");
   flightNumber.className = "af-table__strong";
 
   tr.append(
     flightNumber,
-    cell(flight.airline || "—"),
-    cell(flight.destination_id || "—"),
-    cell([flight.gate_id, flight.terminal_id].filter(Boolean).join(" · ") || "—"),
+    cell(flight.airline || "Sin dato"),
+    cell(flight.destination_id || "Sin dato"),
+    cell([flight.gate_id, flight.terminal_id].filter(Boolean).join(", ") || "Sin dato"),
     cell(formatDateTime(flight.scheduled_departure_at)),
     cell(formatDateTime(flight.actual_departure_at)),
     cell(formatMinutes(flight.delay_minutes)),
@@ -221,13 +221,30 @@ function cell(text) {
 function statusCell(flight) {
   const td = document.createElement("td");
   const badge = document.createElement("span");
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.setAttribute("viewBox", "0 0 16 16");
+  icon.setAttribute("aria-hidden", "true");
+  icon.setAttribute("class", "af-status__icon");
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("fill", "currentColor");
   if (flight.exceeds_threshold) {
     badge.className = "af-status af-status--over";
-    badge.textContent = "⚠ Supera";
+    path.setAttribute(
+      "d",
+      "M8 1.6 15 14H1L8 1.6Zm-.75 4.1v4.1h1.5V5.7h-1.5Zm0 5.2v1.4h1.5v-1.4h-1.5Z",
+    );
+    const label = document.createElement("span");
+    label.textContent = "Supera el umbral";
     badge.title = `Retraso ${formatMinutes(flight.delay_minutes)} frente a un umbral de ${formatMinutes(flight.delay_threshold_minutes)}`;
+    icon.append(path);
+    badge.append(icon, label);
   } else {
     badge.className = "af-status af-status--ok";
-    badge.textContent = "Dentro del umbral";
+    path.setAttribute("d", "M6.4 11.2 3 7.8l1.1-1.1 2.3 2.3 5.5-5.5L13 4.6l-6.6 6.6Z");
+    const label = document.createElement("span");
+    label.textContent = "Dentro del umbral";
+    icon.append(path);
+    badge.append(icon, label);
   }
   td.append(badge);
   return td;

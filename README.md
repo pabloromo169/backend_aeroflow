@@ -30,7 +30,9 @@ Se usa un worker porque el estado y la coordinación de una ejecución viven en 
 El backend sirve el centro de control en `http://127.0.0.1:8000/`:
 
 - `GET /` devuelve `web/index.html`.
-- `/assets/*` sirve CSS y los módulos ES de `web/assets/js/`.
+- `/assets/*` sirve CSS y los módulos ES de `web/assets/js/`. Los estilos se dividen en
+  `tokens.css` (escala y color), `base.css` (reinicio y tipografía) y `styles.css`
+  (componentes).
 - La interfaz no necesita npm ni compilación.
 - Consulta la API cada 5 segundos, se pausa al ocultar la pestaña y refresca al cambiar de simulación, página o intervalo.
 - El selector solo muestra configuraciones guardadas en `operativos`; `SIM-NIFI-TEST` no aparece porque no tiene configuración.

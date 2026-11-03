@@ -219,7 +219,7 @@ async function handleRunAction() {
   if (!simulation) return;
   const accepted = await dialogs.confirmAction({
     title: "Arrancar simulación",
-    message: `Se publicará la configuración ${simulation.simulation_id} · ${simulation.name} y comenzará la simulación. Las salidas se irán almacenando en MongoDB.`,
+    message: `Se publicará la configuración ${simulation.simulation_id}, ${simulation.name} y comenzará la simulación. Las salidas se irán almacenando en MongoDB.`,
     acceptLabel: "Arrancar",
   });
   if (!accepted) return;
@@ -266,8 +266,8 @@ function handleSimulationChange(simulationId) {
 function pageTitle(next) {
   const item = selectedSimulation(next);
   return item
-    ? `${item.simulation_id} · AeroFlow · Centro de control`
-    : "AeroFlow · Centro de control";
+    ? `${item.simulation_id} en AeroFlow, centro de control`
+    : "AeroFlow, centro de control";
 }
 
 function syncIntervalButtons(interval) {

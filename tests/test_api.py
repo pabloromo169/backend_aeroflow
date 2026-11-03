@@ -29,6 +29,7 @@ def test_web_shell_and_assets_are_served_without_shadowing_the_api():
 
     page = client.get("/")
     styles = client.get("/assets/styles.css")
+    tokens = client.get("/assets/tokens.css")
     script = client.get("/assets/js/main.js")
     api = client.get("/api/simulations")
 
@@ -36,7 +37,9 @@ def test_web_shell_and_assets_are_served_without_shadowing_the_api():
     assert "Centro de control" in page.text
     assert page.headers["content-type"].startswith("text/html")
     assert styles.status_code == 200
-    assert "--af-navy" in styles.text
+    assert "--af-signal" in styles.text
+    assert tokens.status_code == 200
+    assert "--color-accent" in tokens.text
     assert script.status_code == 200
     assert "createPoller" in script.text
     assert api.status_code == 200

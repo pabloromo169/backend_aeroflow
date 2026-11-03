@@ -24,7 +24,7 @@ export function createChart({ container, onIntervalChange }) {
     if (range) {
       range.textContent =
         items.length > 0
-          ? `${formatDateTime(items[0].timestamp)} — ${formatDateTime(items[items.length - 1].timestamp)}`
+          ? `${formatDateTime(items[0].timestamp)} a ${formatDateTime(items[items.length - 1].timestamp)}`
           : "";
     }
 
@@ -109,7 +109,7 @@ function buildChart(items, interval) {
       item.departures > 0
         ? formatPercent((item.above_threshold / item.departures) * 100, 1)
         : "—";
-    title.textContent = `${formatDateTime(item.timestamp)} · ${formatNumber(item.departures)} salidas · ${formatNumber(item.above_threshold)} superan el umbral (${percentage})`;
+    title.textContent = `${formatDateTime(item.timestamp)}. ${formatNumber(item.departures)} salidas, ${formatNumber(item.above_threshold)} superan el umbral (${percentage}).`;
     group.append(title);
 
     if (baseHeight > 0) {
