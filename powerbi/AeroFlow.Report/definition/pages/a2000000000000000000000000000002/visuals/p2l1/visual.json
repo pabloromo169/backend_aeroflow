@@ -74,6 +74,13 @@
                   "Value": "'Evolución diaria de salidas válidas'"
                 }
               }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
             }
           }
         }

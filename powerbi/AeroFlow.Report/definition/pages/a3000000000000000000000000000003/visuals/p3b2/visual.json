@@ -97,6 +97,13 @@
                   "Value": "'Salidas por modelo de avión (mayor a menor)'"
                 }
               }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
             }
           }
         }

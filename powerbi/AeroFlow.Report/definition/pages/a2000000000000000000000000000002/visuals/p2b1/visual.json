@@ -97,6 +97,13 @@
                   "Value": "'Superaciones por franja horaria'"
                 }
               }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
             }
           }
         }

@@ -97,6 +97,13 @@
                   "Value": "'Superaciones por compañía (mayor a menor)'"
                 }
               }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
             }
           }
         }

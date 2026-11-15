@@ -121,6 +121,13 @@ nativos.
 **Orden explícito.** Los gráficos de barras llevan `sortDefinition` descendente
 por su medida, para que la lectura sea «de mayor a menor» y no alfabética.
 
+**Etiqueta de agregación oculta en las tarjetas.** Power BI añade por defecto una
+etiqueta con el nombre del campo agregado (`Suma de valid_departures`,
+`Máximo de max_minutes_over`). Con nombres de campo largos se sale del cuadro y
+queda cortada. Se oculta con `categoryLabels.show = false` y el valor se muestra
+en su lugar a 32 pt y en negrita. El título de la tarjeta ya dice qué se mide,
+así que la etiqueta era redundante además de ilegible.
+
 ## Conexión
 
 La consulta M de cada tabla sigue este patrón:

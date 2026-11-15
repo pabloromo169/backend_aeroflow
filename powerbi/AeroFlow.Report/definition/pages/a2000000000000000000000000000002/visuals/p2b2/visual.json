@@ -97,6 +97,13 @@
                   "Value": "'Salidas por tipo de día'"
                 }
               }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
             }
           }
         }

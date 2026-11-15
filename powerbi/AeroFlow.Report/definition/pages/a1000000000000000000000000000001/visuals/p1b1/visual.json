@@ -97,6 +97,13 @@
                   "Value": "'Superaciones por puerta'"
                 }
               }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
             }
           }
         }

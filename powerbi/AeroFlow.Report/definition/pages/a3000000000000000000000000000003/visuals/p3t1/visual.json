@@ -145,6 +145,13 @@
                   "Value": "'Puerta y destino con superaciones'"
                 }
               }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
             }
           }
         }

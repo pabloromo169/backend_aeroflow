@@ -167,7 +167,13 @@ def filtro_igualdad(entidad, campo, valor, sufijo):
 
 def visual(nombre, tipo, x, y, ancho, alto, roles, titulo=None, z=0,
            filtros=None, orden=None):
-    """Crea un visual. `filtros` van en el propio visual (no de pagina)."""
+    """Crea un visual. `filtros` van en el propio visual (no de pagina).
+
+    Las tarjetas (card) ocultan la etiqueta automatica de agregacion
+    (`Suma de valid_departures`): con nombres de campo largos se sale del
+    cuadro y ademas es ruido, porque el titulo ya dice que se mide. En su
+    lugar el valor se muestra grande y en negrita.
+    """
     v = {
         "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
         "name": nombre,
@@ -180,10 +186,21 @@ def visual(nombre, tipo, x, y, ancho, alto, roles, titulo=None, z=0,
             "drillFilterOtherVisuals": True,
         },
     }
+    if tipo == "card":
+        v["visual"]["objects"] = {
+            "categoryLabels": [{"properties": {
+                "show": {"expr": {"Literal": st("false")}},
+            }}],
+            "labels": [{"properties": {
+                "fontSize": {"expr": {"Literal": st("32D")}},
+                "bold": {"expr": {"Literal": st("true")}},
+            }}],
+        }
     if titulo:
         v["visual"]["visualContainerObjects"] = {"title": [{"properties": {
             "show": {"expr": {"Literal": st("true")}},
             "text": {"expr": {"Literal": st("'" + titulo + "'")}},
+            "fontSize": {"expr": {"Literal": st("11D")}},
         }}]}
     if orden:
         campo, direccion = orden
