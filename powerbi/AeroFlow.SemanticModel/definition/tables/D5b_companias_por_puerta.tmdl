@@ -29,7 +29,7 @@ table D5b_companias_por_puerta
 
 	column pct_over_threshold
 		dataType: double
-		formatString: #,##0.00
+		formatString: 0.0%
 		summarizeBy: none
 		sourceColumn: pct_over_threshold
 

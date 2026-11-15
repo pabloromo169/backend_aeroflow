@@ -50,7 +50,7 @@ Los artefactos están en `deploy/`:
 
 - `deploy/aeroflow-backend.service`: unidad systemd que ejecuta uvicorn desde `.venv` en `0.0.0.0:8000`.
 - `deploy/traefik-aeroflow.yml`: router para `aeroflow.monolith.dynamic-dns.net`, servicio hacia `http://172.18.0.1:8000` y middleware de basic auth.
-- `deploy/dremio/vistas-aeroflow.sql`: las 13 vistas del espacio `Aeroflow` exportadas de Dremio, con un `CREATE OR REPLACE VIEW` por vista. Sirve para recrearlas en una instalación nueva y para los anexos de la memoria.
+- `deploy/dremio/vistas-aeroflow.sql`: las 14 vistas del espacio `Aeroflow` exportadas de Dremio, con un `CREATE OR REPLACE VIEW` por vista. Sirve para recrearlas en una instalación nueva y para los anexos de la memoria.
 
 La unidad reintenta con `Restart=always` y `RestartSec=10`, pero `StartLimitBurst=5`
 dentro de `StartLimitIntervalSec=300` corta el bucle si el proceso muere de verdad.

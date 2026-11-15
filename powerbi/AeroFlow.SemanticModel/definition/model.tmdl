@@ -5,12 +5,11 @@ model Model
 
 ref table D1_salidas_por_puerta_destino
 ref table D2_pct_sobre_umbral_puerta
-ref table D3_horas_franjas
 ref table D4_laborables_fin_semana
+ref table D10_salidas_detalle
 ref table D5_companias
 ref table D5b_companias_por_puerta
 ref table D6_retraso_medio_magnitud
 ref table D7_aviones_repetidos_dia
 ref table D8_compania_modelo
-ref table D4b_evolucion_diaria
 ref table D9_aviones_con_superacion

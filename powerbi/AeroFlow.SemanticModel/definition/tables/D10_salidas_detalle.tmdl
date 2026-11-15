@@ -1,12 +1,18 @@
-table D4b_evolucion_diaria
+table D10_salidas_detalle
 
 	column simulation_id
 		dataType: string
 		summarizeBy: none
 		sourceColumn: simulation_id
 
+	column event_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: event_id
+
 	column scheduled_local_date
 		dataType: dateTime
+		formatString: dd/MM
 		summarizeBy: none
 		sourceColumn: scheduled_local_date
 
@@ -15,36 +21,42 @@ table D4b_evolucion_diaria
 		summarizeBy: none
 		sourceColumn: day_type
 
-	column valid_departures
-		dataType: int64
-		formatString: #,##0
-		summarizeBy: sum
-		sourceColumn: valid_departures
-
-	column distinct_aircraft
-		dataType: int64
-		formatString: #,##0
-		summarizeBy: sum
-		sourceColumn: distinct_aircraft
-
-	column over_threshold
-		dataType: int64
-		formatString: #,##0
-		summarizeBy: sum
-		sourceColumn: over_threshold
-
-	column pct_over_threshold
-		dataType: double
-		formatString: #,##0.00
+	column time_band
+		dataType: string
 		summarizeBy: none
-		sourceColumn: pct_over_threshold
+		sourceColumn: time_band
+		sortByColumn: time_band_orden
 
-	partition D4b_evolucion_diaria = m
+	column time_band_orden
+		dataType: int64
+		formatString: #,##0
+		summarizeBy: none
+		sourceColumn: time_band_orden
+
+	column salidas
+		dataType: int64
+		formatString: #,##0
+		summarizeBy: sum
+		sourceColumn: salidas
+
+	column supera_umbral
+		dataType: int64
+		formatString: #,##0
+		summarizeBy: sum
+		sourceColumn: supera_umbral
+
+	column pct_superacion
+		dataType: double
+		formatString: 0.0%
+		summarizeBy: none
+		sourceColumn: pct_superacion
+
+	partition D10_salidas_detalle = m
 		mode: directQuery
 		source =
 			let
 				Origen = Dremio.DatabasesV370("adbc://192.168.0.26:32010", "Disabled"),
 				Aeroflow = Origen{[Name="Aeroflow",Kind="Schema"]}[Data],
-				Vista = Aeroflow{[Name="D4b_evolucion_diaria",Kind="Table"]}[Data]
+				Vista = Aeroflow{[Name="D10_salidas_detalle",Kind="Table"]}[Data]
 			in
 				Vista

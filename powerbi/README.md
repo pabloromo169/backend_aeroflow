@@ -10,7 +10,7 @@ AeroFlow.Report/                   ← definición del informe (formato PBIR)
 AeroFlow.SemanticModel/            ← modelo semántico (TMDL) con la conexión a Dremio
 herramientas/generar-informe.py    ← genera las 3 páginas y el modelo
 herramientas/generar-prueba-d9.py  ← genera la prueba mínima de D9
-num3.png                           ← captura del estado anterior (referencia)
+num2.png                           ← captura de la página 2 ANTES de la corrección
 ```
 
 El formato PBIP es texto plano: modelo en TMDL, páginas y visuales en JSON.
@@ -38,10 +38,47 @@ segmentación por puerta.
 Fuentes: `D9_aviones_con_superacion`, `D2_pct_sobre_umbral_puerta`.
 
 ### 2. Patrones temporales
-Evolución diaria de salidas (líneas), superaciones por franja horaria (con
-segmentación) y salidas por tipo de día.
+Cuatro tarjetas (salidas válidas, superaciones, tasa de superación, días con
+actividad), evolución diaria con **dos series** (salidas y superaciones, mismo
+eje), superaciones por franja en valor absoluto, tasa de superación por franja y
+una tabla comparativa por tipo de día. Todo con segmentación por franja horaria.
 
-Fuentes: `D4b_evolucion_diaria`, `D3_horas_franjas`, `D4_laborables_fin_semana`.
+Fuentes: `D10_salidas_detalle` (toda la página) y `D4_laborables_fin_semana`
+(solo la tabla de tipo de día).
+
+**Por qué esta página usa una sola tabla.** Es la única forma de que el
+segmentador de franja filtre de verdad a todos los visuales: el modelo no tiene
+relaciones entre tablas, así que un segmentador solo alcanza a la tabla a la que
+está enlazado. `D10_salidas_detalle` está a grano de vuelo (1.007 filas en
+`SIM-01`) precisamente para poder servir a la vez a tarjetas, evolución y ambos
+gráficos de franja.
+
+**La única excepción, y por qué.** La tabla de tipo de día va a nivel de periodo y
+lo dice en su subtítulo («Periodo completo (no depende del filtro de franja)»).
+Comparar laborables con fin de semana exige comparar grupos con **distinto número
+de días**; si el filtro de franja la afectara, seguiría siendo comparable en tasa,
+pero su lectura de «días incluidos» y «media diaria» se volvería ambigua. Además
+necesita dos divisiones (media diaria y % del total) que se resuelven en SQL, no
+en el visual. Es una excepción visible y justificada, no un olvido.
+
+**Nada de suavizado.** La línea va con interpolación lineal y marcadores en cada
+fecha. Una curva suave inventa valores entre fechas que no existen; con 7 puntos
+diarios la lectura debe ser punto a punto.
+
+**Nada de eje secundario.** Salidas y superaciones son ambas recuentos de vuelos,
+así que comparten eje sin distorsión. Un eje doble habría permitido dibujar dos
+formas cualesquiera y hacerlas parecer relacionadas.
+
+**Absoluto y tasa, en gráficos separados.** El número de superaciones y el
+porcentaje de vuelos que superan el umbral son métricas distintas. Mezclarlas en
+un mismo eje (o en un mismo gráfico con doble eje) es la forma más fácil de
+confundirlas. Ordenar por volumen daría «Mañana» como la peor franja (102
+superaciones); ordenar por tasa da «Noche» (50,64 %). Ambas lecturas son correctas
+y el informe las muestra por separado.
+
+**Orden cronológico sin DAX.** Las franjas se ordenan con `sortByColumn` en el
+modelo (`time_band` → `time_band_orden`), no alfabéticamente. Eso ordena también
+el segmentador: Madrugada, Mañana, Tarde, Noche.
 
 ### 3. Compañías y aviones
 Cuatro tarjetas, superaciones por compañía (con segmentación), salidas por
@@ -54,9 +91,9 @@ Fuentes: `D5_companias`, `D5b_companias_por_puerta`, `D6_retraso_medio_magnitud`
 
 Este es el punto clave del diseño y merece explicación, porque es contraintuitivo.
 
-**El filtro de página no basta.** Las once tablas del modelo son vistas
-preagregadas de Dremio y **no tienen relaciones entre sí**: no hay una tabla de
-dimensiones común, cada una es independiente. En Power BI, un filtro de página
+**El filtro de página no basta.** Las diez tablas del modelo son vistas de
+Dremio y **no tienen relaciones entre sí**: no hay una tabla de dimensiones común,
+cada una es independiente. En Power BI, un filtro de página
 solo alcanza a la tabla por la que filtra. Si la página filtra por
 `D9.simulation_id`, los visuales que usan `D5` o `D6` **no** quedan filtrados.
 
@@ -191,11 +228,17 @@ Microsoft. El TMDL no lo valida: lo valida Power BI al abrir.
 | Comprobación | Resultado |
 |---|---|
 | Esquemas PBIR (Microsoft) | 0 errores, 0 avisos |
-| Todos los campos de los visuales existen en el modelo | 20/20 |
-| Todos los visuales filtran su propia tabla | 20/20 |
+| Todos los campos de los visuales existen en el modelo | 25/25 |
+| Todos los visuales filtran su propia tabla | 25/25 |
 | Solapes y desbordes de página | ninguno (1280×720) |
 | Cifras contra Dremio (SIM-01) | 1.007 y 374 en las tres páginas |
 | Exceso máximo | 60 min (antes 40.430) |
+| Salidas diarias suman el total del periodo | 1.007 = 1.007 (7 días) |
+| Cada vuelo en una sola franja horaria | 1.007 = 1.007, sin huecos 0–23 h |
+| Días del periodo sin huecos | 7 días, 05/10 a 11/10 |
+| Registros duplicados | 0 (1.007 `event_id` distintos de 1.007 filas) |
+| Tipo de día correcto por fecha | 5 laborables (L–V), 2 fin de semana (S–D) |
+| Vistas del fichero SQL compiladas en Dremio | 14/14 |
 
 ## Cifras de referencia (SIM-01)
 
@@ -206,6 +249,23 @@ Microsoft. El TMDL no lo valida: lo valida Power BI al abrir.
 | Superaciones | 374 (37,14 %) |
 | Aviones con exceso | 50 (100 %) |
 | Por puerta (superan/salidas) | G1 93/257 · G2 50/183 · G3 68/224 · G4 128/206 · G5 35/137 |
+
+Página 2 (patrones temporales):
+
+| Franja | Salidas | Superaciones | Tasa |
+|---|---:|---:|---:|
+| Madrugada (00-06) | 185 | 59 | 31,89 % |
+| Mañana (06-12) | 301 | 102 | 33,89 % |
+| Tarde (12-18) | 286 | 94 | 32,87 % |
+| Noche (18-24) | 235 | 119 | **50,64 %** |
+
+| Tipo de día | Salidas | Días | Media diaria | % del total | Tasa |
+|---|---:|---:|---:|---:|---:|
+| Laborable | 721 | 5 | 144,2 | 71,6 % | 35,92 % |
+| Fin de semana | 286 | 2 | 143,0 | 28,4 % | 40,21 % |
+
+Evolución diaria (salidas / superaciones): 05/10 151/51 · 06/10 138/57 ·
+07/10 144/50 · 08/10 143/53 · 09/10 145/48 · 10/10 146/51 · 11/10 140/64.
 
 Ojo con las simulaciones: la base tiene datos de **cuatro** simulaciones
 (`SIM-01`, `SIM-E376B9557D94`, `SIM-NIFI-TEST`, `SIM-POSTEND`), con 2.115 salidas

@@ -4,7 +4,7 @@
 -- Espacio: Aeroflow
 -- Exportado desde el catálogo de Dremio 26.0.5 el 2026-11-15.
 --
--- 13 vistas virtuales: 2 base (V0_*) y 11 derivadas (D1-D9, D4b, D5b).
+-- 14 vistas virtuales: 2 base (V0_*) y 12 derivadas (D1-D10, D4b, D5b).
 -- Crear primero `V0_salidas` y `V0_puertas`: el resto depende de ellas.
 --
 -- Ejecutar cada bloque en el SQL Runner de Dremio o por API:
@@ -103,12 +103,21 @@ GROUP BY simulation_id, gate_id, local_hour, time_band
 -- --------------------------------------------------------------------------
 -- D4_laborables_fin_semana  (Vista derivada)
 -- --------------------------------------------------------------------------
+-- `days_included`, `avg_departures_per_day` y `pct_of_total` existen para que la
+-- comparativa por tipo de día del informe no necesite DAX: los tres requieren una
+-- división (media diaria y porcentaje del total), que en el modelo no es una
+-- agregación aditiva. Se calculan aquí, en SQL, una sola vez y de forma exacta.
+-- `day_type_orden` da el orden de presentación (Laborable antes que Fin de semana).
 CREATE OR REPLACE VIEW Aeroflow.D4_laborables_fin_semana AS
 SELECT simulation_id, day_type,
+       CASE WHEN day_type = 'Laborable' THEN 1 ELSE 2 END AS day_type_orden,
        COUNT(*) AS valid_departures,
+       COUNT(DISTINCT scheduled_local_date) AS days_included,
+       COUNT(*) * 1.0 / COUNT(DISTINCT scheduled_local_date) AS avg_departures_per_day,
        COUNT(DISTINCT aircraft_id) AS distinct_aircraft,
        SUM(exceeds_threshold) AS over_threshold,
-       SUM(exceeds_threshold) * 100.0 / COUNT(*) AS pct_over_threshold
+       SUM(exceeds_threshold) * 100.0 / COUNT(*) AS pct_over_threshold,
+       COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (PARTITION BY simulation_id) AS pct_of_total
 FROM Aeroflow.V0_salidas
 GROUP BY simulation_id, day_type
 ;
@@ -210,4 +219,39 @@ SELECT simulation_id,
        SUM(exceeds_threshold) * 100.0 / COUNT(*) AS pct_departures_over_threshold
 FROM Aeroflow.V0_salidas
 GROUP BY simulation_id
+;
+
+-- --------------------------------------------------------------------------
+-- D10_salidas_detalle  (Vista derivada, grano de vuelo)
+-- --------------------------------------------------------------------------
+-- Proyección de V0_salidas pensada para la página «Patrones temporales».
+-- Se mantiene a grano de vuelo (una fila por salida) y no preagregada a
+-- propósito: así todos los visuales de la página comparten UNA sola tabla y el
+-- filtro de franja horaria los alcanza a todos. Con vistas preagregadas
+-- distintas por gráfico, un segmentador solo filtra la tabla a la que está
+-- enlazado (el modelo no tiene relaciones).
+--
+-- `salidas` vale 1 en cada fila: contar vuelos es SUM(salidas), una agregación
+-- aditiva que no depende de COUNT ni de DISTINCTCOUNT.
+-- `pct_superacion` es el indicador 0/1 en coma flotante y con formato de
+-- porcentaje en el modelo: su media es la tasa de superación exacta, sin DAX.
+-- `time_band_orden` permite ordenar las franjas cronológicamente mediante
+-- `sortByColumn` en TMDL (1..4: madrugada, mañana, tarde, noche).
+CREATE OR REPLACE VIEW Aeroflow.D10_salidas_detalle AS
+SELECT
+  v.simulation_id,
+  v.event_id,
+  v.scheduled_local_date,
+  v.day_type,
+  v.time_band,
+  CASE v.time_band
+    WHEN 'Madrugada (00-06)' THEN 1
+    WHEN 'Mañana (06-12)'    THEN 2
+    WHEN 'Tarde (12-18)'     THEN 3
+    WHEN 'Noche (18-24)'     THEN 4
+  END AS time_band_orden,
+  1 AS salidas,
+  v.exceeds_threshold AS supera_umbral,
+  CAST(v.exceeds_threshold AS DOUBLE) AS pct_superacion
+FROM Aeroflow.V0_salidas v
 ;

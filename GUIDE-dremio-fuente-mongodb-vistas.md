@@ -66,7 +66,7 @@ Resultado final:
 | Salidas que superan el umbral | 374 (37,14 %) |
 | Aviones distintos | 50 (50 con al menos una superación) |
 
-Las 13 vistas compilan y consultan correctamente. Los totales de D2, D3, D4, D5, D5b,
+Las 14 vistas compilan y consultan correctamente. Los totales de D2, D3, D4, D5, D5b,
 D6 y D8 reconcilian con D9: **1.007 salidas válidas y 374 superaciones**.
 
 > **Cambio respecto a la primera ejecución.** La primera pasada de `SIM-01` almacenó
@@ -697,28 +697,42 @@ un 100 % sobre 2 observaciones no es comparable a un 100 % sobre 14.
 
 ```sql
 SELECT simulation_id, day_type,
+       CASE WHEN day_type = 'Laborable' THEN 1 ELSE 2 END AS day_type_orden,
        COUNT(*) AS valid_departures,
+       COUNT(DISTINCT scheduled_local_date) AS days_included,
+       COUNT(*) * 1.0 / COUNT(DISTINCT scheduled_local_date) AS avg_departures_per_day,
        COUNT(DISTINCT aircraft_id) AS distinct_aircraft,
        SUM(exceeds_threshold) AS over_threshold,
-       SUM(exceeds_threshold) * 100.0 / COUNT(*) AS pct_over_threshold
+       SUM(exceeds_threshold) * 100.0 / COUNT(*) AS pct_over_threshold,
+       COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (PARTITION BY simulation_id) AS pct_of_total
 FROM Aeroflow.V0_salidas
 GROUP BY simulation_id, day_type
 ```
 
-- **Unidades:** salidas, aviones distintos y porcentaje.
+- **Unidades:** salidas, días, media diaria de salidas, aviones distintos y porcentaje.
 - **Clasificación:** fecha local de salida programada; lunes–viernes laborable,
   sábado–domingo fin de semana; sin festivos.
 - **Denominador:** salidas válidas de cada tipo de día.
+- `days_included`, `avg_departures_per_day` y `pct_of_total` existen para que el
+  informe no necesite DAX: la media diaria y el porcentaje del total son divisiones y
+  no se pueden expresar como agregación aditiva. Se calculan aquí, una sola vez y de
+  forma exacta. `pct_of_total` usa una ventana sobre el agregado (Dremio la admite).
+- `day_type_orden` da el orden de presentación (Laborable antes que Fin de semana).
 
-| Tipo de día | Salidas válidas | Aviones distintos | Superan umbral | % |
-|---|---|---|---|---|
-| Fin de semana | 286 | 50 | 115 | **40,21** |
-| Laborable | 721 | 50 | 259 | 35,92 |
+| Tipo de día | Salidas | Días | Media diaria | % del total | Superan | % superación |
+|---|---:|---:|---:|---:|---:|---:|
+| Laborable | 721 | 5 | 144,2 | 71,6 | 259 | 35,92 |
+| Fin de semana | 286 | 2 | 143,0 | 28,4 | 115 | **40,21** |
 
-**Lectura:** el fin de semana tiene menos salidas (2 días frente a 5), pero un
-porcentaje de superación algo mayor (40,21 % vs 35,92 %). Los 50 aviones distintos
-aparecen en ambos tipos de día; **no se suman** (son el mismo conjunto de aviones).
-La comparación correcta es de porcentajes, no de totales absolutos.
+**Lectura:** el fin de semana tiene menos salidas (2 días frente a 5) y, por tanto,
+solo el 28,4 % del total, pero su **media diaria es prácticamente la misma** (143,0
+frente a 144,2): el volumen diario de operación no depende del tipo de día. Lo que sí
+cambia es la tasa de superación, algo mayor en fin de semana (40,21 % vs 35,92 %).
+Comparar los totales absolutos sin mirar los días induciría a error; por eso la tabla
+muestra días y media diaria junto al total.
+
+Los 50 aviones distintos aparecen en ambos tipos de día; **no se suman** (son el mismo
+conjunto de aviones).
 
 Vista auxiliar `D4b_evolucion_diaria` para la evolución temporal de Power BI:
 
@@ -985,6 +999,58 @@ varias superaciones. El porcentaje de aviones es 100 % porque el conjunto es peq
 y todos los aviones vuelan varias veces; el de salidas mide la proporción de
 operaciones, no de aviones.
 
+### D10. Detalle de salidas para la página de patrones temporales
+
+**Pregunta:** ¿cómo evolucionan las salidas y las superaciones día a día y por franja
+horaria, con un filtro de franja que afecte a todo a la vez?
+
+Esta vista **no está preagregada a propósito**: mantiene el grano de vuelo (una fila
+por salida). Así todos los visuales de la página comparten una única tabla y el
+segmentador de franja los alcanza a todos. Con vistas preagregadas distintas por
+gráfico, y sin relaciones en el modelo, un segmentador solo filtra la tabla a la que
+está enlazado.
+
+```sql
+SELECT
+  v.simulation_id,
+  v.event_id,
+  v.scheduled_local_date,
+  v.day_type,
+  v.time_band,
+  CASE v.time_band
+    WHEN 'Madrugada (00-06)' THEN 1
+    WHEN 'Mañana (06-12)'    THEN 2
+    WHEN 'Tarde (12-18)'     THEN 3
+    WHEN 'Noche (18-24)'     THEN 4
+  END AS time_band_orden,
+  1 AS salidas,
+  v.exceeds_threshold AS supera_umbral,
+  CAST(v.exceeds_threshold AS DOUBLE) AS pct_superacion
+FROM Aeroflow.V0_salidas v
+```
+
+Tres columnas auxiliares y su motivo:
+
+| Columna | Para qué | Por qué así |
+|---|---|---|
+| `salidas` | contar vuelos con `SUM(salidas)` | evita depender de `COUNT` en DirectQuery y deja una agregación aditiva pura |
+| `pct_superacion` | tasa por franja y por día | es el indicador 0/1 en coma flotante con formato de porcentaje: **su media es la tasa exacta**, sin DAX |
+| `time_band_orden` | ordenar las franjas 1–4 | `sortByColumn` en TMDL ordena franjas (y el segmentador) cronológicamente, no alfabéticamente |
+
+**Cifras de `SIM-01` por franja:**
+
+| Franja | Salidas | Superaciones | Tasa |
+|---|---:|---:|---:|
+| Madrugada (00-06) | 185 | 59 | 31,89 % |
+| Mañana (06-12) | 301 | 102 | 33,89 % |
+| Tarde (12-18) | 286 | 94 | 32,87 % |
+| Noche (18-24) | **235** | **119** | **50,64 %** |
+
+**Lectura:** la noche concentra la mayor tasa (50,64 %) con el menor volumen de
+salidas de las cuatro franjas. Ordenar por número absoluto daría Mañana como la peor
+franja (102 superaciones), pero su tasa es de las más bajas: son métricas distintas y
+el informe las muestra en dos gráficos separados para no confundirlas.
+
 ---
 
 ## 9. Reconciliación y pruebas de validación
@@ -1096,14 +1162,14 @@ la evidencia.
 
 ### 10.0. Definiciones versionadas
 
-Las 13 vistas están exportadas en `deploy/dremio/vistas-aeroflow.sql`, con un
+Las 14 vistas están exportadas en `deploy/dremio/vistas-aeroflow.sql`, con un
 `CREATE OR REPLACE VIEW Aeroflow.<nombre> AS …` por vista en orden de dependencia
 (`V0_salidas` y `V0_puertas` primero). El fichero es la copia de seguridad del
 espacio `Aeroflow`: permite recrearlo en una instalación nueva y pegar las
 definiciones en los anexos de la memoria.
 
 Se generó desde el catálogo de Dremio, no a mano, y se validó ejecutando cada
-definición como subconsulta: **13/13 compilan** y devuelven las mismas filas que las
+definición como subconsulta: **14/14 compilan** y devuelven las mismas filas que las
 vistas desplegadas.
 
 ### 10.1. Crear una vista
@@ -1204,9 +1270,10 @@ aplican las reglas y los agregados.
 |---|---|---|
 | Estado general | Tarjetas de salidas, aviones, superaciones y % | D9 |
 | Estado general | Esquema de puertas y barras de % | D2 (y D1 para volumen) |
-| Patrones temporales | Mapa de calor puerta–hora | D3 |
-| Patrones temporales | Evolución temporal | D4b |
-| Patrones temporales | Comparación por destino y tipo de día | D4/D6 |
+| Patrones temporales | Evolución diaria de salidas y superaciones | D10 |
+| Patrones temporales | Superaciones y tasa por franja horaria | D10 |
+| Patrones temporales | Comparativa por tipo de día (días, media diaria, % del total) | D4 |
+| Patrones temporales | Tarjetas de salidas, superaciones, tasa y días | D10 |
 | Compañías y aviones | Barras de % con tamaño de muestra | D5 |
 | Compañías y aviones | Tabla de compañías bajo el mínimo | D5 con `meets_minimum = FALSE` |
 | Compañías y aviones | Comparación por puerta | D5b |
@@ -1392,7 +1459,7 @@ Aeroflow.D9_aviones_con_superacion
 - [x] Documentación de dialecto, incidencias e identificadores.
 - [x] Power BI conectado a las vistas de Dremio en DirectQuery (comprobado).
 - [x] Evidencia post-fin con `SIM-POSTEND`: 3 salidas cruzan el fin del periodo.
-- [x] Definiciones de las 13 vistas exportadas a `deploy/dremio/vistas-aeroflow.sql`.
+- [x] Definiciones de las 14 vistas exportadas a `deploy/dremio/vistas-aeroflow.sql`.
 - [x] Aplicación web (frontend + backend) contra MongoDB, desplegada.
 - [x] Pruebas funcionales 5 y 6 (configuración desde la web y nuevas salidas).
 

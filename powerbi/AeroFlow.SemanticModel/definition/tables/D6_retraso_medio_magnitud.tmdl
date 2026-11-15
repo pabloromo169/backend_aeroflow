@@ -28,7 +28,7 @@ table D6_retraso_medio_magnitud
 
 	column avg_delay_minutes
 		dataType: double
-		formatString: #,##0.00
+		formatString: #,##0.0
 		summarizeBy: none
 		sourceColumn: avg_delay_minutes
 
@@ -40,7 +40,7 @@ table D6_retraso_medio_magnitud
 
 	column avg_minutes_over
 		dataType: double
-		formatString: #,##0.00
+		formatString: #,##0.0
 		summarizeBy: none
 		sourceColumn: avg_minutes_over
 

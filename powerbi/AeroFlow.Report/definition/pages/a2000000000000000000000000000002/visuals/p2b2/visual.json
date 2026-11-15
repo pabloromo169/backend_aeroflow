@@ -2,15 +2,15 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
   "name": "p2b2",
   "position": {
-    "x": 650,
-    "y": 370,
-    "z": 2,
-    "width": 610,
-    "height": 330,
-    "tabOrder": 2
+    "x": 20,
+    "y": 438,
+    "z": 3,
+    "width": 400,
+    "height": 262,
+    "tabOrder": 3
   },
   "visual": {
-    "visualType": "clusteredColumnChart",
+    "visualType": "clusteredBarChart",
     "query": {
       "queryState": {
         "Category": {
@@ -20,14 +20,14 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "D4_laborables_fin_semana"
+                      "Entity": "D10_salidas_detalle"
                     }
                   },
-                  "Property": "day_type"
+                  "Property": "time_band"
                 }
               },
-              "queryRef": "D4_laborables_fin_semana.day_type",
-              "nativeQueryRef": "day_type"
+              "queryRef": "D10_salidas_detalle.time_band",
+              "nativeQueryRef": "time_band"
             }
           ]
         },
@@ -40,46 +40,154 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "D4_laborables_fin_semana"
+                          "Entity": "D10_salidas_detalle"
                         }
                       },
-                      "Property": "valid_departures"
+                      "Property": "pct_superacion"
                     }
                   },
-                  "Function": 0
+                  "Function": 1
                 }
               },
-              "queryRef": "Sum(D4_laborables_fin_semana.valid_departures)",
-              "nativeQueryRef": "valid_departures"
+              "queryRef": "Avg(D10_salidas_detalle.pct_superacion)",
+              "nativeQueryRef": "Tasa de superación"
             }
           ]
         }
-      },
-      "sortDefinition": {
-        "sort": [
-          {
-            "field": {
-              "Aggregation": {
-                "Expression": {
-                  "Column": {
-                    "Expression": {
-                      "SourceRef": {
-                        "Entity": "D4_laborables_fin_semana"
-                      }
-                    },
-                    "Property": "valid_departures"
-                  }
-                },
-                "Function": 0
-              }
-            },
-            "direction": "Descending"
-          }
-        ],
-        "isDefaultSort": false
       }
     },
     "drillFilterOtherVisuals": true,
+    "objects": {
+      "categoryAxis": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "invertAxis": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "valueAxis": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "start": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "titleText": {
+              "expr": {
+                "Literal": {
+                  "Value": "'% de salidas'"
+                }
+              }
+            },
+            "titleFontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "labels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "labelPrecision": {
+              "expr": {
+                "Literal": {
+                  "Value": "1L"
+                }
+              }
+            },
+            "valueCustomFormatString": {
+              "expr": {
+                "Literal": {
+                  "Value": "'0.0%'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "legend": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "visualContainerObjects": {
       "title": [
         {
@@ -94,7 +202,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Salidas por tipo de día'"
+                  "Value": "'Tasa de superación por franja'"
                 }
               }
             },
@@ -118,7 +226,7 @@
           "Column": {
             "Expression": {
               "SourceRef": {
-                "Entity": "D4_laborables_fin_semana"
+                "Entity": "D10_salidas_detalle"
               }
             },
             "Property": "simulation_id"
@@ -130,7 +238,7 @@
           "From": [
             {
               "Name": "t",
-              "Entity": "D4_laborables_fin_semana",
+              "Entity": "D10_salidas_detalle",
               "Type": 0
             }
           ],

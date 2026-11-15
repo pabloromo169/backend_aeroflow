@@ -12,6 +12,7 @@ table D7_aviones_repetidos_dia
 
 	column scheduled_local_date
 		dataType: dateTime
+		formatString: dd/MM
 		summarizeBy: none
 		sourceColumn: scheduled_local_date
 
