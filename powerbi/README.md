@@ -34,16 +34,25 @@ La consulta M está en `AeroFlow.SemanticModel/definition/tables/D9_aviones_con_
 
 ```m
 let
-    Origen = Dremio.DatabasesV370("192.168.0.26:32010", "Disabled"),
+    Origen = Dremio.DatabasesV370("adbc://192.168.0.26:32010", "Disabled"),
     Aeroflow = Origen{[Name="Aeroflow",Kind="Schema"]}[Data],
     Vista = Aeroflow{[Name="D9_aviones_con_superacion",Kind="Table"]}[Data]
 in
     Vista
 ```
 
-- Servidor Flight SQL: `192.168.0.26:32010` (cifrado desactivado).
+- El prefijo **`adbc://`** es obligatorio: sin él el conector usa ODBC.
+- Dremio tiene **dos puertos distintos**, y confundirlos es el error más fácil de cometer:
+
+  | Puerto | Protocolo | Uso |
+  |---|---|---|
+  | `31010` | ODBC / JDBC (TLS) | necesita el driver ODBC de Dremio instalado |
+  | `32010` | Arrow Flight (sin TLS) | ADBC, driver incluido en Power BI |
+
+  El conector ADBC usa `libadbc_driver_flightsql.dll`, que Power BI ya trae en
+  `bin\ADBC Drivers\FlightSQL\`. No hay que instalar nada.
+
 - Al abrir por primera vez pedirá credenciales de Dremio: usuario `pablo`.
-- Si prefieres el puerto cifrado, cambia `32010` por `31010` y `"Disabled"` por `"Enabled"`.
 
 ## La medida
 
