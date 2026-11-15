@@ -1094,6 +1094,18 @@ la evidencia.
 
 ## 10. Gestión de vistas por API
 
+### 10.0. Definiciones versionadas
+
+Las 13 vistas están exportadas en `deploy/dremio/vistas-aeroflow.sql`, con un
+`CREATE OR REPLACE VIEW Aeroflow.<nombre> AS …` por vista en orden de dependencia
+(`V0_salidas` y `V0_puertas` primero). El fichero es la copia de seguridad del
+espacio `Aeroflow`: permite recrearlo en una instalación nueva y pegar las
+definiciones en los anexos de la memoria.
+
+Se generó desde el catálogo de Dremio, no a mano, y se validó ejecutando cada
+definición como subconsulta: **13/13 compilan** y devuelven las mismas filas que las
+vistas desplegadas.
+
 ### 10.1. Crear una vista
 
 ```bash
@@ -1380,16 +1392,19 @@ Aeroflow.D9_aviones_con_superacion
 - [x] Documentación de dialecto, incidencias e identificadores.
 - [x] Power BI conectado a las vistas de Dremio en DirectQuery (comprobado).
 - [x] Evidencia post-fin con `SIM-POSTEND`: 3 salidas cruzan el fin del periodo.
+- [x] Definiciones de las 13 vistas exportadas a `deploy/dremio/vistas-aeroflow.sql`.
+- [x] Aplicación web (frontend + backend) contra MongoDB, desplegada.
+- [x] Pruebas funcionales 5 y 6 (configuración desde la web y nuevas salidas).
 
 ### Pendiente
 
 - [ ] Construir las tres páginas del informe Power BI (la conexión DirectQuery ya
   está verificada).
-- [ ] Aplicación web (frontend + backend) contra MongoDB.
-- [ ] Pruebas funcionales 1–6 del enunciado.
+- [ ] Documentar en un solo documento las pruebas funcionales 1–4 (hoy repartidas
+  entre la guía de NiFi y la de Dremio).
+- [ ] Redactar la interpretación de resultados: tres hallazgos y dos prioridades de
+  seguimiento.
 - [ ] Memoria en LaTeX y vídeo de demostración.
-- [ ] Revisar que las vistas se mantienen tras un reinicio de Dremio (el catálogo es
-  persistente, pero conviene comprobarlo antes de la entrega).
 
 ---
 
