@@ -71,6 +71,20 @@ npx powerbi-report-author validate powerbi
 
 Resultado: **0 errores, 0 avisos**.
 
+Esto cubre la definición del informe (`AeroFlow.Report`). El modelo semántico en
+TMDL no lo valida esa herramienta: lo valida Power BI al abrirlo.
+
+## Formato del modelo semántico
+
+El modelo usa **TMDL** (carpeta `definition/` con ficheros `.tmdl`), no TMSL.
+Por eso `definition.pbism` declara `"version": "4.2"`.
+
+Detalle importante: si `definition.pbism` lleva `"version": "1.0"`, Power BI
+interpreta que el modelo es TMSL y busca un `model.bim` que no existe, fallando
+con `Missing required artifact 'model.bim'`. La versión del fichero y el formato
+de la carpeta tienen que coincidir.
+
+
 ## Datos de referencia de D9
 
 | simulation_id | valid_departures |

@@ -2,8 +2,5 @@ model Model
 	culture: es-ES
 	defaultPowerBIDataSourceVersion: powerBI_V3
 	sourceQueryCulture: es-ES
-	dataAccessOptions
-		legacyRedirects
-		returnErrorValuesAsNull
 
-annotation PBI_QueryOrder = ["D9_aviones_con_superacion"]
+ref table D9_aviones_con_superacion

@@ -1,2 +1,4 @@
 database AeroFlow
 	compatibilityLevel: 1600
+	compatibilityMode: powerBI
+	language: 3082
