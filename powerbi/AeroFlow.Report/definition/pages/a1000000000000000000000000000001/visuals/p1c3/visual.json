@@ -2,10 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
   "name": "p1c3",
   "position": {
-    "x": 530,
+    "x": 630,
     "y": 20,
     "z": 0,
-    "width": 240,
+    "width": 290,
     "height": 130,
     "tabOrder": 0
   },
@@ -25,19 +25,20 @@
                           "Entity": "D9_aviones_con_superacion"
                         }
                       },
-                      "Property": "over_threshold_departures"
+                      "Property": "distinct_aircraft"
                     }
                   },
                   "Function": 0
                 }
               },
-              "queryRef": "Sum(D9_aviones_con_superacion.over_threshold_departures)",
-              "nativeQueryRef": "over_threshold_departures"
+              "queryRef": "Sum(D9_aviones_con_superacion.distinct_aircraft)",
+              "nativeQueryRef": "distinct_aircraft"
             }
           ]
         }
       }
     },
+    "drillFilterOtherVisuals": true,
     "visualContainerObjects": {
       "title": [
         {
@@ -52,14 +53,71 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Superan umbral'"
+                  "Value": "'Aviones distintos'"
                 }
               }
             }
           }
         }
       ]
-    },
-    "drillFilterOtherVisuals": true
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "890d5d8a32aaf11e79b1",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "D9_aviones_con_superacion"
+              }
+            },
+            "Property": "simulation_id"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "t",
+              "Entity": "D9_aviones_con_superacion",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "t"
+                          }
+                        },
+                        "Property": "simulation_id"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'SIM-01'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      }
+    ]
   }
 }

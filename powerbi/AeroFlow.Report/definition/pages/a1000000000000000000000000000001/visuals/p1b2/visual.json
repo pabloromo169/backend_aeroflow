@@ -2,15 +2,15 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
   "name": "p1b2",
   "position": {
-    "x": 660,
-    "y": 170,
+    "x": 750,
+    "y": 175,
     "z": 2,
-    "width": 600,
-    "height": 530,
+    "width": 510,
+    "height": 525,
     "tabOrder": 2
   },
   "visual": {
-    "visualType": "clusteredColumnChart",
+    "visualType": "clusteredBarChart",
     "query": {
       "queryState": {
         "Category": {
@@ -23,11 +23,11 @@
                       "Entity": "D2_pct_sobre_umbral_puerta"
                     }
                   },
-                  "Property": "gate_id"
+                  "Property": "valid_departures"
                 }
               },
-              "queryRef": "D2_pct_sobre_umbral_puerta.gate_id",
-              "nativeQueryRef": "gate_id"
+              "queryRef": "D2_pct_sobre_umbral_puerta.valid_departures",
+              "nativeQueryRef": "valid_departures"
             }
           ]
         },
@@ -43,19 +43,43 @@
                           "Entity": "D2_pct_sobre_umbral_puerta"
                         }
                       },
-                      "Property": "valid_departures"
+                      "Property": "over_threshold"
                     }
                   },
                   "Function": 0
                 }
               },
-              "queryRef": "Sum(D2_pct_sobre_umbral_puerta.valid_departures)",
-              "nativeQueryRef": "valid_departures"
+              "queryRef": "Sum(D2_pct_sobre_umbral_puerta.over_threshold)",
+              "nativeQueryRef": "over_threshold"
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "D2_pct_sobre_umbral_puerta"
+                      }
+                    },
+                    "Property": "over_threshold"
+                  }
+                },
+                "Function": 0
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": false
       }
     },
+    "drillFilterOtherVisuals": true,
     "visualContainerObjects": {
       "title": [
         {
@@ -70,14 +94,71 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Salidas validas por puerta'"
+                  "Value": "'Superaciones frente a salidas por puerta'"
                 }
               }
             }
           }
         }
       ]
-    },
-    "drillFilterOtherVisuals": true
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "6680717752761b4d855b",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "D2_pct_sobre_umbral_puerta"
+              }
+            },
+            "Property": "simulation_id"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "t",
+              "Entity": "D2_pct_sobre_umbral_puerta",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "t"
+                          }
+                        },
+                        "Property": "simulation_id"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'SIM-01'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      }
+    ]
   }
 }

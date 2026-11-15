@@ -5,7 +5,7 @@
     "x": 20,
     "y": 20,
     "z": 0,
-    "width": 240,
+    "width": 290,
     "height": 120,
     "tabOrder": 0
   },
@@ -22,22 +22,23 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "D7_aviones_repetidos_dia"
+                          "Entity": "D5_companias"
                         }
                       },
-                      "Property": "over_threshold_departures"
+                      "Property": "valid_departures"
                     }
                   },
                   "Function": 0
                 }
               },
-              "queryRef": "Sum(D7_aviones_repetidos_dia.over_threshold_departures)",
-              "nativeQueryRef": "over_threshold_departures"
+              "queryRef": "Sum(D5_companias.valid_departures)",
+              "nativeQueryRef": "valid_departures"
             }
           ]
         }
       }
     },
+    "drillFilterOtherVisuals": true,
     "visualContainerObjects": {
       "title": [
         {
@@ -52,14 +53,71 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Excesos de aviones reincidentes'"
+                  "Value": "'Salidas válidas (por compañía)'"
                 }
               }
             }
           }
         }
       ]
-    },
-    "drillFilterOtherVisuals": true
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "ded501d33e50a9fdc985",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "D5_companias"
+              }
+            },
+            "Property": "simulation_id"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "t",
+              "Entity": "D5_companias",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "t"
+                          }
+                        },
+                        "Property": "simulation_id"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'SIM-01'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      }
+    ]
   }
 }

@@ -2,10 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
   "name": "p3c3",
   "position": {
-    "x": 530,
+    "x": 630,
     "y": 20,
     "z": 0,
-    "width": 240,
+    "width": 290,
     "height": 120,
     "tabOrder": 0
   },
@@ -22,7 +22,7 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "D5_companias"
+                          "Entity": "D8_compania_modelo"
                         }
                       },
                       "Property": "valid_departures"
@@ -31,13 +31,14 @@
                   "Function": 0
                 }
               },
-              "queryRef": "Sum(D5_companias.valid_departures)",
+              "queryRef": "Sum(D8_compania_modelo.valid_departures)",
               "nativeQueryRef": "valid_departures"
             }
           ]
         }
       }
     },
+    "drillFilterOtherVisuals": true,
     "visualContainerObjects": {
       "title": [
         {
@@ -52,14 +53,71 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Salidas por compania (suma)'"
+                  "Value": "'Salidas válidas (por modelo)'"
                 }
               }
             }
           }
         }
       ]
-    },
-    "drillFilterOtherVisuals": true
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "95c22223f54d3446b77d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "D8_compania_modelo"
+              }
+            },
+            "Property": "simulation_id"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "t",
+              "Entity": "D8_compania_modelo",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "t"
+                          }
+                        },
+                        "Property": "simulation_id"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'SIM-01'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      }
+    ]
   }
 }

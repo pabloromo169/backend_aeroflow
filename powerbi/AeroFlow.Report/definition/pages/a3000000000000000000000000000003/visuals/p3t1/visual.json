@@ -27,7 +27,7 @@
                 }
               },
               "queryRef": "D6_retraso_medio_magnitud.gate_id",
-              "nativeQueryRef": "gate_id"
+              "nativeQueryRef": "Puerta"
             },
             {
               "field": {
@@ -41,7 +41,7 @@
                 }
               },
               "queryRef": "D6_retraso_medio_magnitud.destination_id",
-              "nativeQueryRef": "destination_id"
+              "nativeQueryRef": "Destino"
             },
             {
               "field": {
@@ -60,7 +60,7 @@
                 }
               },
               "queryRef": "Sum(D6_retraso_medio_magnitud.valid_departures)",
-              "nativeQueryRef": "valid_departures"
+              "nativeQueryRef": "Salidas"
             },
             {
               "field": {
@@ -79,7 +79,7 @@
                 }
               },
               "queryRef": "Sum(D6_retraso_medio_magnitud.over_threshold)",
-              "nativeQueryRef": "over_threshold"
+              "nativeQueryRef": "Superan"
             },
             {
               "field": {
@@ -94,16 +94,40 @@
                       "Property": "avg_minutes_over"
                     }
                   },
-                  "Function": 0
+                  "Function": 1
                 }
               },
-              "queryRef": "Sum(D6_retraso_medio_magnitud.avg_minutes_over)",
-              "nativeQueryRef": "avg_minutes_over"
+              "queryRef": "Avg(D6_retraso_medio_magnitud.avg_minutes_over)",
+              "nativeQueryRef": "Exceso medio"
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "D6_retraso_medio_magnitud"
+                      }
+                    },
+                    "Property": "over_threshold"
+                  }
+                },
+                "Function": 0
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": false
       }
     },
+    "drillFilterOtherVisuals": true,
     "visualContainerObjects": {
       "title": [
         {
@@ -118,14 +142,125 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Puerta y destino: muestra y exceso'"
+                  "Value": "'Puerta y destino con superaciones'"
                 }
               }
             }
           }
         }
       ]
-    },
-    "drillFilterOtherVisuals": true
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "5e6d7142e2d811c50039",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "D6_retraso_medio_magnitud"
+              }
+            },
+            "Property": "simulation_id"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "t",
+              "Entity": "D6_retraso_medio_magnitud",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "t"
+                          }
+                        },
+                        "Property": "simulation_id"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'SIM-01'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      },
+      {
+        "name": "dda4af3bd8708a878941",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "D6_retraso_medio_magnitud"
+              }
+            },
+            "Property": "note"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "t",
+              "Entity": "D6_retraso_medio_magnitud",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "t"
+                          }
+                        },
+                        "Property": "note"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Con superaciones'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      }
+    ]
   }
 }

@@ -2,10 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
   "name": "p3c4",
   "position": {
-    "x": 785,
+    "x": 935,
     "y": 20,
     "z": 0,
-    "width": 240,
+    "width": 325,
     "height": 120,
     "tabOrder": 0
   },
@@ -22,22 +22,23 @@
                     "Column": {
                       "Expression": {
                         "SourceRef": {
-                          "Entity": "D5b_companias_por_puerta"
+                          "Entity": "D7_aviones_repetidos_dia"
                         }
                       },
-                      "Property": "valid_departures"
+                      "Property": "max_minutes_over"
                     }
                   },
-                  "Function": 0
+                  "Function": 4
                 }
               },
-              "queryRef": "Sum(D5b_companias_por_puerta.valid_departures)",
-              "nativeQueryRef": "valid_departures"
+              "queryRef": "Max(D7_aviones_repetidos_dia.max_minutes_over)",
+              "nativeQueryRef": "max_minutes_over"
             }
           ]
         }
       }
     },
+    "drillFilterOtherVisuals": true,
     "visualContainerObjects": {
       "title": [
         {
@@ -52,14 +53,71 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Salidas por puerta y compania'"
+                  "Value": "'Exceso máximo (minutos)'"
                 }
               }
             }
           }
         }
       ]
-    },
-    "drillFilterOtherVisuals": true
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "587e9c796f82c7ee54b0",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "D7_aviones_repetidos_dia"
+              }
+            },
+            "Property": "simulation_id"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "t",
+              "Entity": "D7_aviones_repetidos_dia",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "t"
+                          }
+                        },
+                        "Property": "simulation_id"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'SIM-01'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      }
+    ]
   }
 }
