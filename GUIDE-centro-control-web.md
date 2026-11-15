@@ -241,6 +241,7 @@ porque el backend los calcula en cada consulta a partir de las fechas y del umbr
 ## 7. Capturas
 
 Todas están en `docs/capturas-web/`, tomadas contra la URL pública con datos reales.
+En la copia publicada junto a esta guía, la carpeta es `capturas-web/`.
 
 | Archivo | Contenido |
 |---|---|
