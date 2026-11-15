@@ -81,10 +81,39 @@ def _publish_seed(publisher_factory, config: SimulationConfig) -> None:
                     logger.warning("Fallo al cerrar el productor del seed: %s", error)
 
 
+async def _initialize_repository(repository, publisher_factory) -> bool:
+    """Create indexes and the seed configuration, tolerating a MongoDB outage.
+
+    If MongoDB is unreachable the API stays up and answers 503 until it recovers;
+    the caller retries this routine in the background. Aborting startup here would
+    make systemd restart the service in a tight loop.
+    """
+    try:
+        ensure_indexes = getattr(repository, "ensure_indexes", None)
+        if ensure_indexes is not None:
+            await asyncio.to_thread(ensure_indexes)
+        seed = example_configuration()
+        await asyncio.to_thread(repository.ensure_seed, seed)
+        await asyncio.to_thread(_publish_seed, publisher_factory, seed)
+    except Exception as error:  # noqa: BLE001 - never abort startup on MongoDB
+        logger.warning("MongoDB no disponible al inicializar: %s", error)
+        return False
+    logger.info("Repositorio inicializado: índices y configuración semilla listos")
+    return True
+
+
+async def _initialize_with_retries(
+    repository, publisher_factory, delay: float
+) -> None:
+    while not await _initialize_repository(repository, publisher_factory):
+        await asyncio.sleep(delay)
+
+
 def create_app(
     repository: Repository | None = None,
     publisher_factory=None,
     settings: Settings | None = None,
+    init_retry_delay_seconds: float = 15.0,
 ) -> FastAPI:
     settings = settings or Settings()
     if repository is None:
@@ -105,15 +134,22 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
+        startup_task: asyncio.Task | None = None
         try:
-            ensure_indexes = getattr(repository, "ensure_indexes", None)
-            if ensure_indexes is not None:
-                await asyncio.to_thread(ensure_indexes)
-            seed = example_configuration()
-            await asyncio.to_thread(repository.ensure_seed, seed)
-            await asyncio.to_thread(_publish_seed, publisher_factory, seed)
+            if not await _initialize_repository(repository, publisher_factory):
+                startup_task = asyncio.create_task(
+                    _initialize_with_retries(
+                        repository, publisher_factory, init_retry_delay_seconds
+                    )
+                )
             yield
         finally:
+            if startup_task is not None:
+                startup_task.cancel()
+                try:
+                    await startup_task
+                except asyncio.CancelledError:
+                    pass
             if manager.status.state in {"running", "stopping"}:
                 await manager.stop()
             close = getattr(repository, "close", None)

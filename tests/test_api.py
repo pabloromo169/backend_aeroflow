@@ -622,3 +622,64 @@ def test_configuration_rejects_a_destination_catalog_that_nifi_would_not_accept(
 
     assert response.status_code == 422
     assert "catálogo de destinos es fijo" in response.text
+
+
+class UnavailableRepository(MemoryRepository):
+    """MongoDB caído: cualquier acceso al repositorio lanza un error de red."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.offline = True
+
+    def ensure_indexes(self) -> None:
+        if self.offline:
+            raise ServerSelectionTimeoutError("SSL handshake failed")
+
+    def ensure_seed(self, config):
+        if self.offline:
+            raise ServerSelectionTimeoutError("SSL handshake failed")
+        super().ensure_seed(config)
+
+    def list_configurations(self, skip: int = 0, limit: int | None = None):
+        if self.offline:
+            raise ServerSelectionTimeoutError("SSL handshake failed")
+        return super().list_configurations(skip, limit)
+
+
+def test_startup_survives_mongodb_outage_and_serves_503():
+    """Un fallo de MongoDB no debe tumbar el proceso ni provocar reinicios en bucle."""
+    repository = UnavailableRepository()
+    app = create_app(
+        repository=repository,
+        publisher_factory=NullPublisher,
+        init_retry_delay_seconds=60,
+    )
+
+    with TestClient(app) as client:
+        response = client.get("/health")
+        assert response.status_code == 503
+        assert "MongoDB no disponible" in response.text
+
+        page = client.get("/")
+        assert page.status_code == 200
+        assert "Centro de control" in page.text
+
+
+def test_startup_recovers_when_mongodb_comes_back():
+    repository = UnavailableRepository()
+    app = create_app(
+        repository=repository,
+        publisher_factory=NullPublisher,
+        init_retry_delay_seconds=0.2,
+    )
+
+    with TestClient(app) as client:
+        assert client.get("/health").status_code == 503
+        repository.offline = False
+        import time
+
+        deadline = time.time() + 5
+        while time.time() < deadline and "SIM-01" not in repository.configurations:
+            time.sleep(0.1)
+        assert "SIM-01" in repository.configurations
+        assert client.get("/health").status_code == 200

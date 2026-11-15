@@ -2,6 +2,10 @@
 Description=AeroFlow backend
 After=network-online.target docker.service
 Wants=network-online.target
+# Si MongoDB no responde, la API arranca igual y reintenta por su cuenta.
+# El límite evita que systemd reinicie en bucle si el proceso muere de verdad.
+StartLimitIntervalSec=300
+StartLimitBurst=5
 
 [Service]
 Type=simple
@@ -11,7 +15,7 @@ WorkingDirectory=/home/pablo/backend_aeroflow
 EnvironmentFile=/home/pablo/backend_aeroflow/.env
 ExecStart=/home/pablo/backend_aeroflow/.venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1
 Restart=always
-RestartSec=5
+RestartSec=10
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
