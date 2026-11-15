@@ -489,7 +489,11 @@ Resultado de la ejecución de referencia:
 | Documentos `SIM-01` en `vuelos` | **1007** |
 | `event_id` únicos en `SIM-01` | **1007** (0 duplicados) |
 | Rechazados por NiFi | **53** (5,0 %: los 53 defectos del generador) |
-| Documentos totales en `vuelos` (estado actual) | **1.109** (1.007 de `SIM-01` + 1 de prueba + 101 de `SIM-POSTEND`) |
+| Documentos totales en `vuelos` al cerrar esa ejecución | **1.109** (1.007 de `SIM-01` + 1 de prueba + 101 de `SIM-POSTEND`) |
+
+Estado posterior: se añadieron 1.007 documentos de `SIM-E376B9557D94`
+(`PRUEBA_01`, prueba funcional 5), así que hoy `vuelos` suma **2.116**. El detalle
+está en `GUIDE-centro-control-web.md`.
 
 Distribución por puerta:
 

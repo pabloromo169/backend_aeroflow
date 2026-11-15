@@ -40,7 +40,9 @@ El backend sirve el centro de control en `http://127.0.0.1:8000/`:
 - La configuración se abre en un cajón lateral con las pestañas «Configuración actual» y «Nueva simulación». El alta parte de la configuración seleccionada y no arranca la simulación automáticamente.
 - Para enlazar directamente el cajón: `http://127.0.0.1:8000/?panel=config&sim=SIM-01`.
 
-El diseño y las decisiones de interfaz están en `web/DESIGN.md`.
+El diseño y las decisiones de interfaz están en `web/DESIGN.md`. La guía del centro
+de control (URL desplegada, verificación y evidencia de las pruebas funcionales) está
+en `GUIDE-centro-control-web.md`, con capturas en `docs/capturas-web/`.
 
 ### Despliegue nativo con Traefik
 

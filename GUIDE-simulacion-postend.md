@@ -212,10 +212,14 @@ intencionado: el objetivo es forzar el cruce del fin, no analizar esta simulaci�
 | Colección | Documentos |
 |---|---:|
 | `vuelos` de `SIM-01` | 1.007 |
+| `vuelos` de `SIM-E376B9557D94` (`PRUEBA_01`) | 1.007 |
 | `vuelos` de `SIM-NIFI-TEST` | 1 |
 | `vuelos` de `SIM-POSTEND` | 101 |
-| **Total `vuelos`** | **1.109** |
-| `operativos` | 4 (`SIM-01`, `SIM-VALID-API`, `SIM-FINAL`, `SIM-POSTEND`) |
+| **Total `vuelos`** | **2.116** |
+| `operativos` | 5 (`SIM-01`, `SIM-E376B9557D94`, `SIM-VALID-API`, `SIM-FINAL`, `SIM-POSTEND`) |
+
+`PRUEBA_01` (`SIM-E376B9557D94`) es la evidencia de la prueba funcional 5 y se
+conserva a propósito; se describe en `GUIDE-centro-control-web.md`.
 
 El análisis principal sigue siendo `SIM-01`: **1.007 salidas, 374 superaciones
 (37,14 %), 50 aviones**. `SIM-POSTEND` no se incluye en ese informe.
