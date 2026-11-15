@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.1.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "AeroFlow"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "a010f2d9-9ef5-45df-a3aa-8b2567bdbb96"
+  }
+}

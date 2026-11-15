@@ -1,0 +1,88 @@
+# Informe Power BI de AeroFlow
+
+Prueba mínima: **una página con una tarjeta** que muestra `D9` (`valid_departures`)
+de la simulación `SIM-01`, leída **en DirectQuery** desde las vistas de Dremio.
+
+Valor esperado: **1007**.
+
+## Qué hay aquí
+
+```
+AeroFlow.pbip                      ← abre este fichero
+AeroFlow.Report/                   ← definición del informe (formato PBIR)
+AeroFlow.SemanticModel/            ← modelo semántico (TMDL) con la conexión a Dremio
+```
+
+El formato PBIP es texto plano: modelo semántico en TMDL y páginas/visuales en JSON.
+Permite versionarlo en Git y revisarlo, cosa que un `.pbix` no permite.
+
+## Cómo abrirlo
+
+Doble clic en `AeroFlow.pbip`.
+
+Si Windows no asocia la extensión, abre Power BI Desktop primero y usa
+**Archivo → Abrir** sobre `AeroFlow.pbip`. Con el informe ya abierto, guárdalo
+como `.pbix` (**Archivo → Guardar como**) para tener el fichero de entrega.
+
+> Requiere una versión de Power BI Desktop que soporte PBIP y el conector
+> `Dremio.pqx`, que viene incluido en la versión de Microsoft Store (2.159 o
+> superior). No hace falta instalar el driver ODBC: el conector usa ADBC.
+
+## Conexión
+
+La consulta M está en `AeroFlow.SemanticModel/definition/tables/D9_aviones_con_superacion.tmdl`:
+
+```m
+let
+    Origen = Dremio.DatabasesV370("192.168.0.26:32010", "Disabled"),
+    Aeroflow = Origen{[Name="Aeroflow",Kind="Schema"]}[Data],
+    Vista = Aeroflow{[Name="D9_aviones_con_superacion",Kind="Table"]}[Data]
+in
+    Vista
+```
+
+- Servidor Flight SQL: `192.168.0.26:32010` (cifrado desactivado).
+- Al abrir por primera vez pedirá credenciales de Dremio: usuario `pablo`.
+- Si prefieres el puerto cifrado, cambia `32010` por `31010` y `"Disabled"` por `"Enabled"`.
+
+## La medida
+
+La tarjeta no usa la columna directamente, sino una medida que fija la simulación,
+para que el valor sea único y no dependa de filtros:
+
+```dax
+CALCULATE(
+    SUM(D9_aviones_con_superacion[valid_departures]),
+    D9_aviones_con_superacion[simulation_id] = "SIM-01"
+)
+```
+
+Esto es necesario porque el rol `Values` del visual `card` solo admite medidas.
+El validador de PBIR rechaza una columna suelta ahí.
+
+## Validación
+
+El proyecto está validado con la herramienta oficial de Microsoft:
+
+```bash
+npm install @microsoft/powerbi-report-authoring-cli
+npx powerbi-report-author validate powerbi
+```
+
+Resultado: **0 errores, 0 avisos**.
+
+## Datos de referencia de D9
+
+| simulation_id | valid_departures |
+|---|---|
+| SIM-01 | 1007 |
+| SIM-E376B9557D94 | 1007 |
+| SIM-POSTEND | 101 |
+| SIM-NIFI-TEST | 1 |
+
+## Siguiente paso
+
+Cuando esta tarjeta se vea con 1007, se construyen las 3 páginas definitivas:
+Estado general, Patrones temporales y Compañías y aviones. El mapeo de cada
+visual a su vista de Dremio está en
+`../GUIDE-dremio-fuente-mongodb-vistas.md` (§11.3).

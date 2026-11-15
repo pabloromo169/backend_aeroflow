@@ -1,0 +1,48 @@
+table D9_aviones_con_superacion
+	lineageTag: 2aa1cbe1-8e4a-4374-95d4-014f74773d1e
+
+	measure 'D9 aviones con superacion' = CALCULATE(SUM(D9_aviones_con_superacion[valid_departures]), D9_aviones_con_superacion[simulation_id] = "SIM-01")
+		formatString: 0
+		lineageTag: d69a339c-6fd6-443a-9d64-36347c786f1d
+
+	column simulation_id
+		dataType: string
+		isNameInferred
+		sourceColumn: [simulation_id]
+		lineageTag: 83406c95-a7ee-4a74-80e6-c6ad9655b99d
+		summarizeBy: none
+		isHidden
+
+	column valid_departures
+		dataType: int64
+		formatString: 0
+		isNameInferred
+		sourceColumn: [valid_departures]
+		lineageTag: 0e9639ee-8e62-423d-be51-f751e8d93498
+		summarizeBy: sum
+
+	column over_threshold_departures
+		dataType: int64
+		formatString: 0
+		isNameInferred
+		sourceColumn: [over_threshold_departures]
+		lineageTag: 02986a4c-4faa-4e78-81c5-2a708a97f794
+		summarizeBy: sum
+
+	column pct_departures_over_threshold
+		dataType: double
+		isNameInferred
+		sourceColumn: [pct_departures_over_threshold]
+		lineageTag: 8627f377-6b7b-4ed3-b1b5-bc95c8534db2
+		summarizeBy: none
+
+	source
+		type: m
+		expression = let
+			    Origen = Dremio.DatabasesV370("192.168.0.26:32010", "Disabled"),
+			    Aeroflow = Origen{[Name="Aeroflow",Kind="Schema"]}[Data],
+			    Vista = Aeroflow{[Name="D9_aviones_con_superacion",Kind="Table"]}[Data]
+			in
+			    Vista
+
+	mode: directQuery
