@@ -1,0 +1,83 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "p2b1",
+  "position": {
+    "x": 20,
+    "y": 370,
+    "z": 1,
+    "width": 610,
+    "height": 330,
+    "tabOrder": 1
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "D3_horas_franjas"
+                    }
+                  },
+                  "Property": "time_band"
+                }
+              },
+              "queryRef": "D3_horas_franjas.time_band",
+              "nativeQueryRef": "time_band"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "D3_horas_franjas"
+                        }
+                      },
+                      "Property": "over_threshold"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(D3_horas_franjas.over_threshold)",
+              "nativeQueryRef": "over_threshold"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Superaciones por franja horaria'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

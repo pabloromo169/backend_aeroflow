@@ -1,0 +1,66 @@
+table D6_retraso_medio_magnitud
+
+	column simulation_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: simulation_id
+
+	column gate_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: gate_id
+
+	column terminal_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: terminal_id
+
+	column destination_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: destination_id
+
+	column valid_departures
+		dataType: int64
+		formatString: #,##0
+		summarizeBy: sum
+		sourceColumn: valid_departures
+
+	column avg_delay_minutes
+		dataType: double
+		formatString: #,##0.00
+		summarizeBy: none
+		sourceColumn: avg_delay_minutes
+
+	column over_threshold
+		dataType: int64
+		formatString: #,##0
+		summarizeBy: sum
+		sourceColumn: over_threshold
+
+	column avg_minutes_over
+		dataType: double
+		formatString: #,##0.00
+		summarizeBy: none
+		sourceColumn: avg_minutes_over
+
+	column max_minutes_over
+		dataType: double
+		formatString: #,##0.00
+		summarizeBy: none
+		sourceColumn: max_minutes_over
+
+	column note
+		dataType: string
+		summarizeBy: none
+		sourceColumn: note
+
+	partition D6_retraso_medio_magnitud = m
+		mode: directQuery
+		source =
+			let
+				Origen = Dremio.DatabasesV370("adbc://192.168.0.26:32010", "Disabled"),
+				Aeroflow = Origen{[Name="Aeroflow",Kind="Schema"]}[Data],
+				Vista = Aeroflow{[Name="D6_retraso_medio_magnitud",Kind="Table"]}[Data]
+			in
+				Vista

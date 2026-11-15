@@ -1,0 +1,43 @@
+table D1_salidas_por_puerta_destino
+
+	column simulation_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: simulation_id
+
+	column gate_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: gate_id
+
+	column terminal_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: terminal_id
+
+	column destination_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: destination_id
+
+	column valid_departures
+		dataType: int64
+		formatString: #,##0
+		summarizeBy: sum
+		sourceColumn: valid_departures
+
+	column distinct_aircraft
+		dataType: int64
+		formatString: #,##0
+		summarizeBy: sum
+		sourceColumn: distinct_aircraft
+
+	partition D1_salidas_por_puerta_destino = m
+		mode: directQuery
+		source =
+			let
+				Origen = Dremio.DatabasesV370("adbc://192.168.0.26:32010", "Disabled"),
+				Aeroflow = Origen{[Name="Aeroflow",Kind="Schema"]}[Data],
+				Vista = Aeroflow{[Name="D1_salidas_por_puerta_destino",Kind="Table"]}[Data]
+			in
+				Vista

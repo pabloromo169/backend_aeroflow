@@ -1,0 +1,50 @@
+table D4b_evolucion_diaria
+
+	column simulation_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: simulation_id
+
+	column scheduled_local_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: scheduled_local_date
+
+	column day_type
+		dataType: string
+		summarizeBy: none
+		sourceColumn: day_type
+
+	column valid_departures
+		dataType: int64
+		formatString: #,##0
+		summarizeBy: sum
+		sourceColumn: valid_departures
+
+	column distinct_aircraft
+		dataType: int64
+		formatString: #,##0
+		summarizeBy: sum
+		sourceColumn: distinct_aircraft
+
+	column over_threshold
+		dataType: int64
+		formatString: #,##0
+		summarizeBy: sum
+		sourceColumn: over_threshold
+
+	column pct_over_threshold
+		dataType: double
+		formatString: #,##0.00
+		summarizeBy: none
+		sourceColumn: pct_over_threshold
+
+	partition D4b_evolucion_diaria = m
+		mode: directQuery
+		source =
+			let
+				Origen = Dremio.DatabasesV370("adbc://192.168.0.26:32010", "Disabled"),
+				Aeroflow = Origen{[Name="Aeroflow",Kind="Schema"]}[Data],
+				Vista = Aeroflow{[Name="D4b_evolucion_diaria",Kind="Table"]}[Data]
+			in
+				Vista

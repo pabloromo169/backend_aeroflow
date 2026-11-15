@@ -1,0 +1,65 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "p3c1",
+  "position": {
+    "x": 20,
+    "y": 20,
+    "z": 0,
+    "width": 240,
+    "height": 120,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "D7_aviones_repetidos_dia"
+                        }
+                      },
+                      "Property": "over_threshold_departures"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(D7_aviones_repetidos_dia.over_threshold_departures)",
+              "nativeQueryRef": "over_threshold_departures"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Excesos de aviones reincidentes'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

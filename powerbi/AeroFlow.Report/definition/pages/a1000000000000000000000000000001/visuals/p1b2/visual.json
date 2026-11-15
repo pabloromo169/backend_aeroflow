@@ -1,0 +1,83 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "p1b2",
+  "position": {
+    "x": 660,
+    "y": 170,
+    "z": 2,
+    "width": 600,
+    "height": 530,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "D2_pct_sobre_umbral_puerta"
+                    }
+                  },
+                  "Property": "gate_id"
+                }
+              },
+              "queryRef": "D2_pct_sobre_umbral_puerta.gate_id",
+              "nativeQueryRef": "gate_id"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "D2_pct_sobre_umbral_puerta"
+                        }
+                      },
+                      "Property": "valid_departures"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(D2_pct_sobre_umbral_puerta.valid_departures)",
+              "nativeQueryRef": "valid_departures"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Salidas validas por puerta'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "p1c4",
+  "position": {
+    "x": 785,
+    "y": 20,
+    "z": 0,
+    "width": 240,
+    "height": 130,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "D9_aviones_con_superacion"
+                        }
+                      },
+                      "Property": "aircraft_with_exceedance"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(D9_aviones_con_superacion.aircraft_with_exceedance)",
+              "nativeQueryRef": "aircraft_with_exceedance"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Aviones con exceso'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

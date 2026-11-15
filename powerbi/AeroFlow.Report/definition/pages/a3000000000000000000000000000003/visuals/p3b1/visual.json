@@ -1,0 +1,83 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "p3b1",
+  "position": {
+    "x": 20,
+    "y": 160,
+    "z": 1,
+    "width": 610,
+    "height": 260,
+    "tabOrder": 1
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "D5_companias"
+                    }
+                  },
+                  "Property": "airline"
+                }
+              },
+              "queryRef": "D5_companias.airline",
+              "nativeQueryRef": "airline"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "D5_companias"
+                        }
+                      },
+                      "Property": "over_threshold"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(D5_companias.over_threshold)",
+              "nativeQueryRef": "over_threshold"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Superaciones por compania'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

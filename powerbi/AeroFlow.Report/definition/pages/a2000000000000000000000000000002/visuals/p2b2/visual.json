@@ -1,0 +1,83 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "p2b2",
+  "position": {
+    "x": 650,
+    "y": 370,
+    "z": 2,
+    "width": 610,
+    "height": 330,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "D4_laborables_fin_semana"
+                    }
+                  },
+                  "Property": "day_type"
+                }
+              },
+              "queryRef": "D4_laborables_fin_semana.day_type",
+              "nativeQueryRef": "day_type"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "D4_laborables_fin_semana"
+                        }
+                      },
+                      "Property": "valid_departures"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(D4_laborables_fin_semana.valid_departures)",
+              "nativeQueryRef": "valid_departures"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Salidas por tipo de dia'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

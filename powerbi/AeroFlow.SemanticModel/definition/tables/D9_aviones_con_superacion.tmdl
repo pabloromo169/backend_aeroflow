@@ -1,12 +1,7 @@
 table D9_aviones_con_superacion
 
-	/// Salidas válidas de la simulación SIM-01. Vista D9 de Dremio.
-	measure 'D9 aviones con superacion' = CALCULATE(SUM(D9_aviones_con_superacion[valid_departures]), D9_aviones_con_superacion[simulation_id] = "SIM-01")
-		formatString: #,##0
-
 	column simulation_id
 		dataType: string
-		isHidden
 		summarizeBy: none
 		sourceColumn: simulation_id
 
@@ -16,14 +11,33 @@ table D9_aviones_con_superacion
 		summarizeBy: sum
 		sourceColumn: valid_departures
 
+	column distinct_aircraft
+		dataType: int64
+		formatString: #,##0
+		summarizeBy: sum
+		sourceColumn: distinct_aircraft
+
+	column aircraft_with_exceedance
+		dataType: int64
+		formatString: #,##0
+		summarizeBy: sum
+		sourceColumn: aircraft_with_exceedance
+
 	column over_threshold_departures
 		dataType: int64
 		formatString: #,##0
 		summarizeBy: sum
 		sourceColumn: over_threshold_departures
 
+	column pct_aircraft_with_exceedance
+		dataType: double
+		formatString: #,##0.00
+		summarizeBy: none
+		sourceColumn: pct_aircraft_with_exceedance
+
 	column pct_departures_over_threshold
 		dataType: double
+		formatString: #,##0.00
 		summarizeBy: none
 		sourceColumn: pct_departures_over_threshold
 

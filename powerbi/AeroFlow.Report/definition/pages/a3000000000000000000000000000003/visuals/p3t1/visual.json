@@ -1,0 +1,131 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "p3t1",
+  "position": {
+    "x": 650,
+    "y": 440,
+    "z": 4,
+    "width": 610,
+    "height": 260,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "D6_retraso_medio_magnitud"
+                    }
+                  },
+                  "Property": "gate_id"
+                }
+              },
+              "queryRef": "D6_retraso_medio_magnitud.gate_id",
+              "nativeQueryRef": "gate_id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "D6_retraso_medio_magnitud"
+                    }
+                  },
+                  "Property": "destination_id"
+                }
+              },
+              "queryRef": "D6_retraso_medio_magnitud.destination_id",
+              "nativeQueryRef": "destination_id"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "D6_retraso_medio_magnitud"
+                        }
+                      },
+                      "Property": "valid_departures"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(D6_retraso_medio_magnitud.valid_departures)",
+              "nativeQueryRef": "valid_departures"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "D6_retraso_medio_magnitud"
+                        }
+                      },
+                      "Property": "over_threshold"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(D6_retraso_medio_magnitud.over_threshold)",
+              "nativeQueryRef": "over_threshold"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "D6_retraso_medio_magnitud"
+                        }
+                      },
+                      "Property": "avg_minutes_over"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(D6_retraso_medio_magnitud.avg_minutes_over)",
+              "nativeQueryRef": "avg_minutes_over"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Puerta y destino: muestra y exceso'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
