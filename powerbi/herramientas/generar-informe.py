@@ -9,6 +9,7 @@ Reglas de diseno:
   asi ningun visual necesita filtros propios.
 """
 
+import hashlib
 import json
 import pathlib
 import shutil
@@ -119,9 +120,16 @@ def visual(nombre, tipo, x, y, ancho, alto, roles, titulo, z=0):
 
 
 def filtro_simulacion(entidad="D9_aviones_con_superacion", sufijo="1"):
-    """Filtro categorico: entidad[simulation_id] IN (SIM-01)."""
+    """Filtro categorico: entidad[simulation_id] IN (SIM-01).
+
+    El valor de texto va entre comillas simples DENTRO del literal
+    ("'SIM-01'"), que es la forma que produce el codificador de PBIR.
+    Sin esas comillas el motor intenta interpretarlo como identificador y
+    la representacion falla con un TypeError en SQExprValidationVisitor.
+    """
+    nombre = hashlib.sha1(f"filtro-{sufijo}".encode()).hexdigest()[:20]
     return {
-        "name": f"FiltroSimulacion_{sufijo}",
+        "name": nombre,
         "field": col(entidad, "simulation_id"),
         "type": "Categorical",
         "filter": {
@@ -132,10 +140,11 @@ def filtro_simulacion(entidad="D9_aviones_con_superacion", sufijo="1"):
                     "Expressions": [{"Column": {
                         "Expression": {"SourceRef": {"Source": "d"}},
                         "Property": "simulation_id"}}],
-                    "Values": [[{"Literal": st(SIM)}]],
+                    "Values": [[{"Literal": st(f"'{SIM}'")}]],
                 }}
             }],
         },
+        "howCreated": "User",
     }
 
 

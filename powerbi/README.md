@@ -71,6 +71,32 @@ materializado en local. Además Microsoft retira R y Python visuals en mayo de
 ningún visual necesita filtros propios y se evidencia la coherencia con las
 cifras de referencia.
 
+### Trampa de los literales en los filtros
+
+Los valores de texto de un filtro van entre **comillas simples dentro** del
+literal, y esto no es cosmético:
+
+```json
+"Values": [[{"Literal": {"Value": "'SIM-01'"}}]]   // correcto
+"Values": [[{"Literal": {"Value": "SIM-01"}}]]     // falla
+```
+
+Sin las comillas, Power BI intenta interpretar el valor como identificador y la
+representación del informe aborta con un `TypeError` en
+`SQExprValidationVisitor.visitIn`. El síntoma es un error de JavaScript al
+pintar, no un mensaje de validación, así que el validador de esquemas **no lo
+detecta**: el JSON es válido, la expresión no.
+
+La forma correcta se puede comprobar con el codificador oficial:
+
+```bash
+npx powerbi-report-author expr encode "SIM-01" --kind string
+# -> {"Literal": {"Value": "'SIM-01'"}}
+```
+
+Regla práctica: enteros con sufijo `L` (`"2022L"`), texto con comillas simples
+(`"'SIM-01'"`), comillas simples internas duplicadas (`"'O''Brien'"`).
+
 ## Conexión
 
 La consulta M de cada tabla sigue este patrón:

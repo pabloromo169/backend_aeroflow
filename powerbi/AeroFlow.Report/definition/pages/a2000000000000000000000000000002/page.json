@@ -8,7 +8,7 @@
   "filterConfig": {
     "filters": [
       {
-        "name": "FiltroSimulacion_2",
+        "name": "dfbe66d3641467b54fa4",
         "field": {
           "Column": {
             "Expression": {
@@ -49,7 +49,7 @@
                     [
                       {
                         "Literal": {
-                          "Value": "SIM-01"
+                          "Value": "'SIM-01'"
                         }
                       }
                     ]
@@ -58,7 +58,8 @@
               }
             }
           ]
-        }
+        },
+        "howCreated": "User"
       }
     ]
   }
