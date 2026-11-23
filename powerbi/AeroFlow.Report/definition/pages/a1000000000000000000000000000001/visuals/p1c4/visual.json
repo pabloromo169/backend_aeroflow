@@ -2,10 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
   "name": "p1c4",
   "position": {
-    "x": 629,
+    "x": 764,
     "y": 20,
     "z": 0,
-    "width": 195,
+    "width": 245,
     "height": 130,
     "tabOrder": 0
   },
@@ -25,14 +25,14 @@
                           "Entity": "D9_aviones_con_superacion"
                         }
                       },
-                      "Property": "aircraft_with_exceedance"
+                      "Property": "pct_departures_over_threshold"
                     }
                   },
-                  "Function": 0
+                  "Function": 4
                 }
               },
-              "queryRef": "Sum(D9_aviones_con_superacion.aircraft_with_exceedance)",
-              "nativeQueryRef": "aircraft_with_exceedance"
+              "queryRef": "Max(D9_aviones_con_superacion.pct_departures_over_threshold)",
+              "nativeQueryRef": "% de salidas con exceso"
             }
           ]
         }
@@ -88,7 +88,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Aviones con exceso'"
+                  "Value": "'% de salidas que superan'"
                 }
               }
             },

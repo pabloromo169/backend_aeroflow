@@ -31,17 +31,15 @@ tener el fichero de entrega.
 ## Páginas
 
 ### 1. Estado general
-Seis tarjetas: cuatro de volumen (salidas válidas, superaciones, aviones
-distintos, aviones con exceso) y dos de proporción (% de salidas que superan el
-umbral, % de aviones con exceso). Debajo, el esquema del aeropuerto (cinco
-terminales, una puerta por terminal) y dos barras por puerta: superaciones en
-valor absoluto y % de salidas que superan el umbral. Con segmentación por
-puerta.
+Cinco tarjetas: tres de volumen (salidas válidas, superaciones, aviones
+distintos) y dos de proporción (% de salidas que superan el umbral, % de
+aviones con exceso). Debajo, dos barras por puerta: superaciones en valor
+absoluto y % de salidas que superan el umbral. Con segmentación por puerta.
 
 Fuente: `D9_aviones_con_superacion` (tarjetas) y `D2_pct_sobre_umbral_puerta`
-(segmenador, esquema y barras).
+(segmenador y barras).
 
-**Por qué seis tarjetas y no cuatro.** La memoria pide «volumen y proporción».
+**Por qué cinco tarjetas y no cuatro.** La memoria pide «volumen y proporción».
 Con solo recuentos la proporción hay que calcularla de cabeza; con solo
 porcentajes el volumen desaparece. Ambos conceptos conviven y no se funden en
 una tarjeta porque miden cosas distintas: el 37,14 % se refiere a **salidas**
@@ -53,12 +51,6 @@ distintas y en SIM-01 no siempre coinciden al ordenar: G4 es primera en las dos
 (128 superaciones, 62,1 %), pero G2 y G5 invierten su posición relativa según
 se mire el volumen o la incidencia. Un solo gráfico con doble eje las habría
 mezclado; separadas se leen en paralelo.
-
-**El esquema de puertas no consulta Dremio.** La memoria admite un esquema
-propio y no exige mapa. Es texto estático (una puerta por terminal, con su
-umbral de configuración: 15 min en T1, T2, T3 y T5; 20 min en T4). No filtra
-nada — para eso está el segmentador — y su información no es métrica sino de
-catálogo.
 
 ### 2. Patrones temporales
 Cuatro tarjetas (salidas válidas, superaciones, tasa de superación, días con
@@ -259,8 +251,8 @@ Microsoft. El TMDL no lo valida: lo valida Power BI al abrir.
 | Comprobación | Resultado |
 |---|---|
 | Esquemas PBIR (Microsoft) | 0 errores, 0 avisos |
-| Todos los campos de los visuales existen en el modelo | 33/33 |
-| Todos los visuales consultados filtran su propia tabla | 25/25 consultas + 6 estáticos |
+| Todos los campos de los visuales existen en el modelo | 26/26 |
+| Todos los visuales consultados filtran su propia tabla | 26/26 |
 | Solapes y desbordes de página | ninguno (1280×720) |
 | Cifras contra Dremio (SIM-01) | 1.007 y 374 en las tres páginas |
 | Exceso máximo | 60 min (antes 40.430) |
@@ -278,7 +270,6 @@ Microsoft. El TMDL no lo valida: lo valida Power BI al abrir.
 | Salidas válidas | 1.007 |
 | Aviones distintos | 50 |
 | Superaciones | 374 (37,14 %) |
-| Aviones con exceso | 50 (100 %) |
 | Por puerta (superan/salidas) | G1 93/257 · G2 50/183 · G3 68/224 · G4 128/206 · G5 35/137 |
 | % salidas con exceso, por puerta | G4 62,14 % · G1 36,19 % · G3 30,36 % · G2 27,32 % · G5 25,55 % |
 

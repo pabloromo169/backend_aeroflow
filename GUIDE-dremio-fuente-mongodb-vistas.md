@@ -1268,8 +1268,7 @@ aplican las reglas y los agregados.
 
 | Página | Visual | Vista |
 |---|---|---|
-| Estado general | Seis tarjetas: volumen y proporción | D9 |
-| Estado general | Esquema de las cinco puertas (texto estático) | — (catálogo, sin métricas) |
+| Estado general | Cinco tarjetas: volumen y proporción | D9 |
 | Estado general | Barras de superaciones y de % por puerta | D2 |
 | Patrones temporales | Evolución diaria de salidas y superaciones | D10 |
 | Patrones temporales | Superaciones y tasa por franja horaria | D10 |
