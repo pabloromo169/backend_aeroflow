@@ -31,11 +31,34 @@ tener el fichero de entrega.
 ## Páginas
 
 ### 1. Estado general
-Cuatro tarjetas (salidas válidas, superaciones, aviones distintos, aviones con
-exceso) y dos gráficos de barras por puerta, ordenados de mayor a menor, con
-segmentación por puerta.
+Seis tarjetas: cuatro de volumen (salidas válidas, superaciones, aviones
+distintos, aviones con exceso) y dos de proporción (% de salidas que superan el
+umbral, % de aviones con exceso). Debajo, el esquema del aeropuerto (cinco
+terminales, una puerta por terminal) y dos barras por puerta: superaciones en
+valor absoluto y % de salidas que superan el umbral. Con segmentación por
+puerta.
 
-Fuentes: `D9_aviones_con_superacion`, `D2_pct_sobre_umbral_puerta`.
+Fuente: `D9_aviones_con_superacion` (tarjetas) y `D2_pct_sobre_umbral_puerta`
+(segmenador, esquema y barras).
+
+**Por qué seis tarjetas y no cuatro.** La memoria pide «volumen y proporción».
+Con solo recuentos la proporción hay que calcularla de cabeza; con solo
+porcentajes el volumen desaparece. Ambos conceptos conviven y no se funden en
+una tarjeta porque miden cosas distintas: el 37,14 % se refiere a **salidas**
+mientras que el 100 % se refiere a **aviones** — y esa diferencia es
+justamente lo que la memoria pide comparar en la página 3.
+
+**Por qué dos barras en vez de una.** Recuento y porcentaje son métricas
+distintas y en SIM-01 no siempre coinciden al ordenar: G4 es primera en las dos
+(128 superaciones, 62,1 %), pero G2 y G5 invierten su posición relativa según
+se mire el volumen o la incidencia. Un solo gráfico con doble eje las habría
+mezclado; separadas se leen en paralelo.
+
+**El esquema de puertas no consulta Dremio.** La memoria admite un esquema
+propio y no exige mapa. Es texto estático (una puerta por terminal, con su
+umbral de configuración: 15 min en T1, T2, T3 y T5; 20 min en T4). No filtra
+nada — para eso está el segmentador — y su información no es métrica sino de
+catálogo.
 
 ### 2. Patrones temporales
 Cuatro tarjetas (salidas válidas, superaciones, tasa de superación, días con
@@ -127,6 +150,14 @@ modelo, y eso exige construirla en Dremio o con DAX.
 porque se agregaba con `SUM` sobre una columna que ya es un máximo por grupo:
 sumaba los máximos y daba 4.043. Lo correcto es `MAX`, que da **60**.
 Regla aplicada en todo el modelo: `pct_*`, `avg_*` y `max_*` nunca se suman.
+
+**Dos escalas de porcentaje.** Las vistas traen los porcentajes de dos formas
+distintas y confundirlas multiplica los valores por 100 al mostrarlos: en D2,
+D4, D5, D8 y D9 ya van multiplicadas por 100 en SQL (35.92 = 35,92 %), así que
+llevan formato de número con el símbolo `%` literal (`#,##0.0"%"`); en D10,
+`pct_superacion` es un indicador 0/1 y su formato es de tanto por ciento real
+(`0.0%`), que multiplica por 100 al presentar — por eso su media da 37,1 %.
+La regla no es «pct_ = porcentaje», sino mirar la escala de cada columna.
 
 **Filas sin información.** La tabla de puerta/destino mostraba filas sin
 superaciones (solo ruido de lectura). Se añadió un segundo filtro sobre
@@ -228,8 +259,8 @@ Microsoft. El TMDL no lo valida: lo valida Power BI al abrir.
 | Comprobación | Resultado |
 |---|---|
 | Esquemas PBIR (Microsoft) | 0 errores, 0 avisos |
-| Todos los campos de los visuales existen en el modelo | 25/25 |
-| Todos los visuales filtran su propia tabla | 25/25 |
+| Todos los campos de los visuales existen en el modelo | 33/33 |
+| Todos los visuales consultados filtran su propia tabla | 25/25 consultas + 6 estáticos |
 | Solapes y desbordes de página | ninguno (1280×720) |
 | Cifras contra Dremio (SIM-01) | 1.007 y 374 en las tres páginas |
 | Exceso máximo | 60 min (antes 40.430) |
@@ -249,6 +280,7 @@ Microsoft. El TMDL no lo valida: lo valida Power BI al abrir.
 | Superaciones | 374 (37,14 %) |
 | Aviones con exceso | 50 (100 %) |
 | Por puerta (superan/salidas) | G1 93/257 · G2 50/183 · G3 68/224 · G4 128/206 · G5 35/137 |
+| % salidas con exceso, por puerta | G4 62,14 % · G1 36,19 % · G3 30,36 % · G2 27,32 % · G5 25,55 % |
 
 Página 2 (patrones temporales):
 

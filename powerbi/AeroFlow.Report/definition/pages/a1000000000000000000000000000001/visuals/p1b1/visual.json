@@ -3,11 +3,11 @@
   "name": "p1b1",
   "position": {
     "x": 215,
-    "y": 175,
-    "z": 1,
-    "width": 520,
-    "height": 525,
-    "tabOrder": 1
+    "y": 448,
+    "z": 3,
+    "width": 345,
+    "height": 252,
+    "tabOrder": 3
   },
   "visual": {
     "visualType": "clusteredBarChart",

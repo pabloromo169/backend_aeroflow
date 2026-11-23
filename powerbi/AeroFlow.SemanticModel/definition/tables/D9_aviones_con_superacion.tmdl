@@ -31,13 +31,13 @@ table D9_aviones_con_superacion
 
 	column pct_aircraft_with_exceedance
 		dataType: double
-		formatString: 0.0%
+		formatString: #,##0.0"%"
 		summarizeBy: none
 		sourceColumn: pct_aircraft_with_exceedance
 
 	column pct_departures_over_threshold
 		dataType: double
-		formatString: 0.0%
+		formatString: #,##0.0"%"
 		summarizeBy: none
 		sourceColumn: pct_departures_over_threshold
 

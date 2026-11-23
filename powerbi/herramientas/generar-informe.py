@@ -289,6 +289,23 @@ def slicer(nombre, entidad, campo, x, y, ancho, alto, sufijo, titulo,
                   objetos=objetos)
 
 
+def caja_texto(nombre, x, y, ancho, alto, lineas, titulo=None, z=0, tamano=9):
+    """Caja de texto estatica.
+
+    Sirve para el esquema del aeropuerto: la memoria dice que el esquema puede
+    elaborarlo el alumnado y que NO hace falta un mapa geografico. Los
+    parrafos van en objects.general (forma que produce Power BI Desktop); el
+    contenido es literal, no consulta, asi que no lleva filtro ni roles.
+    """
+    v = visual(nombre, "textbox", x, y, ancho, alto, {}, titulo, z=z)
+    v["visual"]["objects"] = {
+        "text": [{"properties": {"fontSize": lit(f"{tamano}D")}}],
+        "general": [{"properties": {"paragraphs": [
+            {"textRuns": [{"value": linea}]} for linea in lineas]}}],
+    }
+    return v
+
+
 # --- formato comun de ejes (evita etiquetas cortadas y escalas enganosas) ---
 def eje_categoria(orientacion_vertical=False, tamano=8, invertir=None):
     props = {
@@ -336,35 +353,78 @@ D10 = "D10_salidas_detalle"
 # ============================ PAGINA 1 ============================
 # Estado general: 4 tarjetas D9 + barras por puerta (D2), ordenadas.
 p1 = [
-    visual("p1c1", "card", 20, 20, 290, 130,
+    # --- banda superior: 6 tarjetas ------------------------------------
+    # "Volumen" son las 4 de recuento; "proporcion" son las 2 de
+    # porcentaje. No se funden en una tarjeta porque miden conceptos
+    # distintos: 37,14 % de las SALIDAS superan el umbral, mientras que el
+    # 100 % de los AVIONES registran al menos una superacion. Es la
+    # diferencia que la memoria pide comparar explicitamente.
+    visual("p1c1", "card", 20, 20, 195, 130,
            {"Values": [proy_agregada(D9, "valid_departures", SUMA)]},
            "Salidas válidas", z=0,
            filtros=filtros_tabla(D9, "p1c1")),
-    visual("p1c2", "card", 325, 20, 290, 130,
+    visual("p1c2", "card", 223, 20, 195, 130,
            {"Values": [proy_agregada(D9, "over_threshold_departures", SUMA)]},
-           "Superaciones del umbral", z=0,
+           "Superaciones", z=0,
            filtros=filtros_tabla(D9, "p1c2")),
-    visual("p1c3", "card", 630, 20, 290, 130,
+    visual("p1c3", "card", 426, 20, 195, 130,
            {"Values": [proy_agregada(D9, "distinct_aircraft", SUMA)]},
            "Aviones distintos", z=0,
            filtros=filtros_tabla(D9, "p1c3")),
-    visual("p1c4", "card", 935, 20, 325, 130,
+    visual("p1c4", "card", 629, 20, 195, 130,
            {"Values": [proy_agregada(D9, "aircraft_with_exceedance", SUMA)]},
            "Aviones con exceso", z=0,
            filtros=filtros_tabla(D9, "p1c4")),
+    visual("p1c5", "card", 832, 20, 210, 130,
+           {"Values": [proy_agregada(D9, "pct_departures_over_threshold",
+                                     MAXIMO, "% de salidas con exceso")]},
+           "% de salidas que superan", z=0,
+           filtros=filtros_tabla(D9, "p1c5")),
+    visual("p1c6", "card", 1050, 20, 210, 130,
+           {"Values": [proy_agregada(D9, "pct_aircraft_with_exceedance",
+                                     MAXIMO, "% de aviones con exceso")]},
+           "% de aviones con exceso", z=0,
+           filtros=filtros_tabla(D9, "p1c6")),
 
+    # --- filtro de puerta (afecta a los dos graficos) -------------------
     slicer("p1s1", D2, "gate_id", 20, 175, 180, 525, "p1s1", "Puerta"),
 
-    visual("p1b1", "clusteredBarChart", 215, 175, 520, 525,
+    # --- esquema de las cinco puertas -----------------------------------
+    # La memoria admite un esquema propio y NO exige mapa. Es referencia
+    # estatica: no filtra (para eso esta el segmentador) y no consulta
+    # Dremio. La organizacion fisica (una puerta por terminal) y los
+    # umbrales son datos de configuracion, no metricas.
+    caja_texto("p1e0", 215, 175, 345, 68,
+               ["Cinco terminales (T1-T5), una puerta por terminal (G1-G5).",
+                "Umbral de retraso: 15 min en T1, T2, T3 y T5; 20 min en T4."],
+               "Esquema del aeropuerto", z=1, tamano=8),
+    caja_texto("p1e1", 235, 251, 130, 56,
+               ["G1", "Terminal T1 · umbral 15 min"], z=2, tamano=8),
+    caja_texto("p1e2", 375, 251, 130, 56,
+               ["G2", "Terminal T2 · umbral 15 min"], z=2, tamano=8),
+    caja_texto("p1e3", 235, 315, 130, 56,
+               ["G3", "Terminal T3 · umbral 15 min"], z=2, tamano=8),
+    caja_texto("p1e4", 375, 315, 130, 56,
+               ["G4", "Terminal T4 · umbral 20 min"], z=2, tamano=8),
+    caja_texto("p1e5", 305, 379, 130, 56,
+               ["G5", "Terminal T5 · umbral 15 min"], z=2, tamano=8),
+
+    # --- barras por puerta ----------------------------------------------
+    # Recuento y porcentaje en graficos separados, como en la pagina 2.
+    # Ambos ordenados por superaciones absolutas, que en SIM-01 dan el mismo
+    # orden que el porcentaje (G4 128 y 62,1 % primero; G5 35 y 25,5 %
+    # ultimo), asi que las dos columnas se leen en paralelo.
+    visual("p1b1", "clusteredBarChart", 215, 448, 345, 252,
            {"Category": [proy_columna(D2, "gate_id")],
             "Y": [proy_agregada(D2, "over_threshold", SUMA)]},
-           "Superaciones por puerta", z=1,
+           "Superaciones por puerta", z=3,
            filtros=filtros_tabla(D2, "p1b1"),
            orden=(proy_agregada(D2, "over_threshold", SUMA), DESCENDENTE)),
-    visual("p1b2", "clusteredBarChart", 750, 175, 510, 525,
-           {"Category": [proy_columna(D2, "valid_departures")],
-            "Y": [proy_agregada(D2, "over_threshold", SUMA)]},
-           "Superaciones frente a salidas por puerta", z=2,
+    visual("p1b2", "clusteredBarChart", 575, 175, 685, 525,
+           {"Category": [proy_columna(D2, "gate_id")],
+            "Y": [proy_agregada(D2, "pct_over_threshold", MAXIMO,
+                                "% de salidas que superan el umbral")]},
+           "% de salidas que superan el umbral, por puerta", z=4,
            filtros=filtros_tabla(D2, "p1b2"),
            orden=(proy_agregada(D2, "over_threshold", SUMA), DESCENDENTE)),
 ]
@@ -557,15 +617,29 @@ p3 = [
 def formato_columna(nombre, tipo):
     """Formato de presentacion por columna.
 
-    Los porcentajes llevan formato de tanto por ciento en el MODELO (no en el
-    visual): asi la tarjeta de tasa y el eje del grafico muestran 37,1 % sin
-    necesidad de DAX ni de multiplicar por 100 a mano.
+    Dos escalas de porcentaje conviven en las vistas y se distinguen por
+    nombre de columna:
+
+    - `pct_superacion` (D10) es un INDICADOR 0/1 en coma flotante. Su formato
+      es de tanto por ciento ("0.0%"), que multiplica por 100 al mostrar: la
+      media 0.3714 se lee 37,1 %.
+
+    - El resto de `pct_*` (D2, D4, D5, D8, D9) ya va multiplicado por 100 en
+      SQL (35.92 = 35,92 %). Con "0.0%" Power BI volveria a multiplicar y
+      mostraria 3592 %, asi que llevan formato de numero con un "%" literal
+      anadido: 35,92 %.
+
+    La regla NO es "pct_ = porcentaje", sino mirar la escala de cada columna.
     """
     if nombre == "scheduled_local_date" and tipo == "date":
         # eje de la evolucion: "05/10", no "05/10/2026 0:00:00"
         return "dd/MM"
-    if nombre.startswith("pct_"):
+    if nombre == "pct_superacion":
+        # indicador 0/1: el formato % multiplica por 100 al mostrar
         return "0.0%"
+    if nombre.startswith("pct_"):
+        # ya va multiplicado por 100 en SQL: solo se anade el signo literal
+        return '#,##0.0"%"'
     if nombre.startswith("avg_"):
         return "#,##0.0"
     if tipo == "double":

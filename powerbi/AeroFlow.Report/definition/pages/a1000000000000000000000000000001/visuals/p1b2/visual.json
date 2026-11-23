@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
   "name": "p1b2",
   "position": {
-    "x": 750,
+    "x": 575,
     "y": 175,
-    "z": 2,
-    "width": 510,
+    "z": 4,
+    "width": 685,
     "height": 525,
-    "tabOrder": 2
+    "tabOrder": 4
   },
   "visual": {
     "visualType": "clusteredBarChart",
@@ -23,11 +23,11 @@
                       "Entity": "D2_pct_sobre_umbral_puerta"
                     }
                   },
-                  "Property": "valid_departures"
+                  "Property": "gate_id"
                 }
               },
-              "queryRef": "D2_pct_sobre_umbral_puerta.valid_departures",
-              "nativeQueryRef": "valid_departures"
+              "queryRef": "D2_pct_sobre_umbral_puerta.gate_id",
+              "nativeQueryRef": "gate_id"
             }
           ]
         },
@@ -43,14 +43,14 @@
                           "Entity": "D2_pct_sobre_umbral_puerta"
                         }
                       },
-                      "Property": "over_threshold"
+                      "Property": "pct_over_threshold"
                     }
                   },
-                  "Function": 0
+                  "Function": 4
                 }
               },
-              "queryRef": "Sum(D2_pct_sobre_umbral_puerta.over_threshold)",
-              "nativeQueryRef": "over_threshold"
+              "queryRef": "Max(D2_pct_sobre_umbral_puerta.pct_over_threshold)",
+              "nativeQueryRef": "% de salidas que superan el umbral"
             }
           ]
         }
@@ -94,7 +94,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Superaciones frente a salidas por puerta'"
+                  "Value": "'% de salidas que superan el umbral, por puerta'"
                 }
               }
             },
