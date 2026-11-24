@@ -626,29 +626,34 @@ p2 = [
 # La tabla puerta-destino se filtra ademas por note, para no mostrar filas
 # sin superaciones (que solo anaden ruido a la lectura).
 p3 = [
-    visual("p3c1", "card", 20, 20, 290, 120,
+    # Tarjetas mas estrechas (todas a 280, antes 290/290/290/325) y algo mas
+    # bajas, para ganar altura en el carril de filtros; la fila sigue
+    # arrancando en x=20 y cerrando en el borde derecho (1260) con gaps
+    # uniformes de 40.
+    visual("p3c1", "card", 20, 20, 280, 112,
            {"Values": [proy_agregada(D5, "valid_departures", SUMA)]},
            "Salidas válidas (por compañía)", z=0,
            filtros=filtros_tabla(D5, "p3c1")),
-    visual("p3c2", "card", 325, 20, 290, 120,
+    visual("p3c2", "card", 340, 20, 280, 112,
            {"Values": [proy_agregada(D5, "over_threshold", SUMA)]},
            "Superaciones (por compañía)", z=0,
            filtros=filtros_tabla(D5, "p3c2")),
-    visual("p3c3", "card", 630, 20, 290, 120,
+    visual("p3c3", "card", 660, 20, 280, 112,
            {"Values": [proy_agregada(D8, "valid_departures", SUMA)]},
            "Salidas válidas (por modelo)", z=0,
            filtros=filtros_tabla(D8, "p3c3")),
-    visual("p3c4", "card", 935, 20, 325, 120,
+    visual("p3c4", "card", 980, 20, 280, 112,
            {"Values": [proy_agregada(D7, "max_minutes_over", MAXIMO)]},
            "Exceso máximo (minutos)", z=0,
            filtros=filtros_tabla(D7, "p3c4")),
 
     # Barras horizontales, ordenadas de mayor a menor, con etiquetas de datos.
-    # El carril de filtros crece a 196 (el de simulacion, ~170 px para sus
-    # 4 elementos; el de compania se queda con lo justo) y p3b1 se estrecha
-    # a 390 para dejar sitio.
-    slicer_simulacion("p3s0", 20, 160, 196, 170, "p3s0"),
-    slicer("p3s1", D5, "airline", 20, 342, 196, 96, "p3s1", "Compañía"),
+    # Carril de filtros mas alto: simulacion 180 y compania 110 (antes 170 y
+    # 96). Todos los huecos verticales del carril valen 12: tarjetas->simu-
+    # lacion (132->144), simulacion->compania (324->336) y compania->fila de
+    # abajo (446->458), que antes estaba pegada (2 px).
+    slicer_simulacion("p3s0", 20, 144, 196, 180, "p3s0"),
+    slicer("p3s1", D5, "airline", 20, 336, 196, 110, "p3s1", "Compañía"),
 
     visual("p3b1", "clusteredBarChart", 228, 160, 390, 260,
            {"Category": [proy_columna(D5, "airline")],
@@ -662,13 +667,13 @@ p3 = [
            "Salidas por modelo de avión (mayor a menor)", z=2,
            filtros=filtros_tabla(D8, "p3b2"),
            orden=(proy_agregada(D8, "valid_departures", SUMA), DESCENDENTE)),
-    visual("p3b3", "clusteredBarChart", 20, 440, 610, 260,
+    visual("p3b3", "clusteredBarChart", 20, 458, 610, 242,
            {"Category": [proy_columna(D5b, "gate_id")],
             "Y": [proy_agregada(D5b, "over_threshold", SUMA)]},
            "Superaciones por puerta", z=3,
            filtros=filtros_tabla(D5b, "p3b3"),
            orden=(proy_agregada(D5b, "over_threshold", SUMA), DESCENDENTE)),
-    visual("p3t1", "tableEx", 650, 440, 610, 260,
+    visual("p3t1", "tableEx", 650, 458, 610, 242,
            {"Values": [
                proy_columna(D6, "gate_id", "Puerta"),
                proy_columna(D6, "destination_id", "Destino"),

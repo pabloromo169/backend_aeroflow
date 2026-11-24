@@ -3,10 +3,10 @@
   "name": "p3s0",
   "position": {
     "x": 20,
-    "y": 160,
+    "y": 144,
     "z": 9,
     "width": 196,
-    "height": 170,
+    "height": 180,
     "tabOrder": 9
   },
   "visual": {
