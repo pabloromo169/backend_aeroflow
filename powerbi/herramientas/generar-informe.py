@@ -309,6 +309,12 @@ def slicer_simulacion(nombre, x, y, ancho, alto, sufijo):
     seleccion por defecto viaja en objects.general[0].properties.filter como
     un filtro categorico guardado dentro del propio slicer: al abrir, el
     informe muestra SIM-01; cambiar la seleccion actualiza todas las paginas.
+
+    Seleccion unica y forzada (singleSelect + strictSingleSelect): solo puede
+    haber UNA simulacion activa a la vez — elegir varias sumaria escenarios
+    distintos (1.007 salidas de SIM-01 mas 1.007 de PRUEBA_01...) — y si no
+    hubiera ninguna, se elige automaticamente la primera. Sin casilla
+    «Seleccionar todo», que no tiene sentido aqui.
     """
     v = slicer(nombre, SIMULACIONES, "simulation_id", x, y, ancho, alto,
                sufijo, "Simulación")
@@ -325,7 +331,11 @@ def slicer_simulacion(nombre, x, y, ancho, alto, sufijo):
     }
     v["visual"]["objects"] = {
         "general": [{"properties": {"filter": lit(json.dumps(seleccion))}}],
-        "selection": v["visual"]["objects"]["selection"],
+        "selection": [{"properties": {
+            "selectAllCheckboxEnabled": lit("false"),
+            "singleSelect": lit("true"),
+            "strictSingleSelect": lit("true"),
+        }}],
         "value": v["visual"]["objects"]["value"],
     }
     return v
