@@ -453,8 +453,11 @@ p1 = [
 
     # --- filtro de puerta (afecta a los dos graficos) -------------------
     # --- filtros: simulacion (comun, arriba) + puerta --------------------
-    slicer_simulacion("p1s0", 20, 175, 180, 120, "p1s0"),
-    slicer("p1s1", D2, "gate_id", 20, 307, 180, 393, "p1s1", "Puerta"),
+    # El de simulacion necesita ~170 px para mostrar sus 4 elementos sin
+    # scroll (cabecera + 4 filas); el de puerta se reduce a lo que ocupan
+    # sus 5 valores.
+    slicer_simulacion("p1s0", 20, 175, 180, 170, "p1s0"),
+    slicer("p1s1", D2, "gate_id", 20, 357, 180, 200, "p1s1", "Puerta"),
 
     # --- barras por puerta ----------------------------------------------
     # Recuento y porcentaje en graficos separados, como en la pagina 2.
@@ -481,25 +484,28 @@ p1 = [
 # segmentador de franja horaria filtre de forma coherente tarjetas, evolucion
 # y ambos graficos de franja.
 p2 = [
-    # --- banda superior: segmentador + tarjetas ------------------------
-    slicer_simulacion("p2s0", 20, 20, 196, 60, "p2s0"),
-    slicer("p2s1", D10, "time_band", 20, 92, 196, 80, "p2s1",
+    # --- banda superior: segmentadores lado a lado + tarjetas ------------
+    # Cada slicer necesita ~170 px para mostrar su lista completa sin scroll
+    # (cabecera + 4 elementos): apilados no caben junto a la evolucion, asi
+    # que van lado a lado y las tarjetas se estrechan a 197.
+    slicer_simulacion("p2s0", 20, 20, 196, 170, "p2s0"),
+    slicer("p2s1", D10, "time_band", 228, 20, 196, 170, "p2s1",
            "Franja horaria"),
 
-    visual("p2c1", "card", 224, 20, 250, 152,
+    visual("p2c1", "card", 436, 20, 197, 152,
            {"Values": [proy_agregada(D10, "salidas", SUMA, "Salidas válidas")]},
            "Salidas válidas", z=0,
            filtros=filtros_tabla(D10, "p2c1")),
-    visual("p2c2", "card", 483, 20, 250, 152,
+    visual("p2c2", "card", 645, 20, 197, 152,
            {"Values": [proy_agregada(D10, "supera_umbral", SUMA, "Superaciones")]},
            "Superaciones", z=0,
            filtros=filtros_tabla(D10, "p2c2")),
-    visual("p2c3", "card", 742, 20, 250, 152,
+    visual("p2c3", "card", 854, 20, 197, 152,
            {"Values": [proy_agregada(D10, "pct_superacion", MEDIA,
                                      "Tasa de superación")]},
            "Tasa de superación", z=0,
            filtros=filtros_tabla(D10, "p2c3")),
-    visual("p2c4", "card", 1001, 20, 250, 152,
+    visual("p2c4", "card", 1063, 20, 197, 152,
            {"Values": [proy_agregada(D10, "scheduled_local_date", DISTINTOS,
                                      "Días con actividad")]},
            "Días con actividad", z=0,
@@ -510,7 +516,7 @@ p2 = [
     # compartir escala no distorsiona la comparacion (un eje secundario si
     # lo haria). Interpolacion lineal y marcadores: nada de curvas suaves
     # que inventen tendencias entre fechas.
-    visual("p2l1", "lineChart", 20, 180, 810, 250,
+    visual("p2l1", "lineChart", 20, 202, 810, 228,
            {"Category": [proy_columna(D10, "scheduled_local_date")],
             "Y": [proy_agregada(D10, "salidas", SUMA, "Salidas válidas"),
                   proy_agregada(D10, "supera_umbral", SUMA, "Superaciones")]},
@@ -542,7 +548,7 @@ p2 = [
     # --- superaciones por franja: absoluto -----------------------------
     # Barras horizontales: los nombres largos de franja caben enteros y el
     # orden es cronologico (Madrugada arriba) gracias a sortByColumn.
-    visual("p2b1", "clusteredBarChart", 838, 180, 422, 250,
+    visual("p2b1", "clusteredBarChart", 842, 202, 418, 228,
            {"Category": [proy_columna(D10, "time_band")],
             "Y": [proy_agregada(D10, "supera_umbral", SUMA, "Superaciones")]},
            "Superaciones por franja horaria", z=2,
@@ -628,16 +634,19 @@ p3 = [
            filtros=filtros_tabla(D7, "p3c4")),
 
     # Barras horizontales, ordenadas de mayor a menor, con etiquetas de datos.
-    slicer_simulacion("p3s0", 20, 160, 165, 100, "p3s0"),
-    slicer("p3s1", D5, "airline", 20, 272, 165, 148, "p3s1", "Compañía"),
+    # El carril de filtros crece a 196 (el de simulacion, ~170 px para sus
+    # 4 elementos; el de compania se queda con lo justo) y p3b1 se estrecha
+    # a 390 para dejar sitio.
+    slicer_simulacion("p3s0", 20, 160, 196, 170, "p3s0"),
+    slicer("p3s1", D5, "airline", 20, 342, 196, 96, "p3s1", "Compañía"),
 
-    visual("p3b1", "clusteredBarChart", 200, 160, 430, 260,
+    visual("p3b1", "clusteredBarChart", 228, 160, 390, 260,
            {"Category": [proy_columna(D5, "airline")],
             "Y": [proy_agregada(D5, "over_threshold", SUMA)]},
            "Superaciones por compañía (mayor a menor)", z=1,
            filtros=filtros_tabla(D5, "p3b1"),
            orden=(proy_agregada(D5, "over_threshold", SUMA), DESCENDENTE)),
-    visual("p3b2", "clusteredBarChart", 650, 160, 610, 260,
+    visual("p3b2", "clusteredBarChart", 630, 160, 630, 260,
            {"Category": [proy_columna(D8, "aircraft_model")],
             "Y": [proy_agregada(D8, "valid_departures", SUMA)]},
            "Salidas por modelo de avión (mayor a menor)", z=2,
