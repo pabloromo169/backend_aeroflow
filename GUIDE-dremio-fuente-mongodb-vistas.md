@@ -1470,8 +1470,8 @@ Aeroflow.D9_aviones_con_superacion
 - [x] Interpretación de resultados (borrador de trabajo en
   `docs/interpretacion-resultados.md`): tres hallazgos, dos prioridades de
   seguimiento y trazabilidad hacia la configuración del simulador.
-- [ ] Documentar en un solo documento las pruebas funcionales 1–4 (hoy repartidas
-  entre la guía de NiFi y la de Dremio).
+- [x] Pruebas funcionales 1–6 consolidadas en un solo documento
+  (`docs/pruebas-funcionales.md`).
 - [ ] Memoria en LaTeX y vídeo de demostración.
 
 ---

@@ -157,3 +157,12 @@ python -m pytest -q
 ```
 
 Las pruebas automatizadas cubren generación, determinismo, contratos HTTP y coordinación usando adaptadores simulados; no necesitan servicios Kafka/MongoDB activos.
+
+## Documentación de entrega
+
+- **Pruebas de funcionamiento 1–6** (enunciado) consolidadas: `docs/pruebas-funcionales.md`
+- **Interpretación de resultados** (borrador de trabajo): `docs/interpretacion-resultados.md`
+- Guías técnicas: NiFi (`GUIDE-nifi-flujo-vuelos.md`), configuración (`GUIDE-nifi_validacion_configuracion.md`),
+  Dremio (`GUIDE-dremio-fuente-mongodb-vistas.md`), MongoDB (`GUIDE-mongodb-192.168.0.26.md`),
+  web (`GUIDE-centro-control-web.md`), simulación post-fin (`GUIDE-simulacion-postend.md`),
+  Traefik (`GUIDE-traefik-servicios-nativos-192.168.0.26.md`) y Power BI (`powerbi/README.md`).
