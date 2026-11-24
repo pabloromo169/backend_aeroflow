@@ -1,0 +1,16 @@
+table D_SIMULACIONES
+
+	column simulation_id
+		dataType: string
+		summarizeBy: none
+		sourceColumn: simulation_id
+
+	partition D_SIMULACIONES = m
+		mode: directQuery
+		source =
+			let
+				Origen = Dremio.DatabasesV370("adbc://192.168.0.26:32010", "Disabled"),
+				Aeroflow = Origen{[Name="Aeroflow",Kind="Schema"]}[Data],
+				Vista = Aeroflow{[Name="D_SIMULACIONES",Kind="Table"]}[Data]
+			in
+				Vista

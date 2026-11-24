@@ -4,7 +4,7 @@
 -- Espacio: Aeroflow
 -- Exportado desde el catálogo de Dremio 26.0.5 el 2026-11-15.
 --
--- 14 vistas virtuales: 2 base (V0_*) y 12 derivadas (D1-D10, D4b, D5b).
+-- 15 vistas virtuales: 2 base (V0_*) y 13 derivadas (D1-D10, D4b, D5b, D_SIMULACIONES).
 -- Crear primero `V0_salidas` y `V0_puertas`: el resto depende de ellas.
 --
 -- Ejecutar cada bloque en el SQL Runner de Dremio o por API:
@@ -254,4 +254,18 @@ SELECT
   v.exceeds_threshold AS supera_umbral,
   CAST(v.exceeds_threshold AS DOUBLE) AS pct_superacion
 FROM Aeroflow.V0_salidas v
+;
+
+-- --------------------------------------------------------------------------
+-- D_SIMULACIONES  (Dimension de simulaciones)
+-- --------------------------------------------------------------------------
+-- Una fila por simulation_id presente en `vuelos`. Es la dimension de la que
+-- cuelgan relaciones 1:* hacia las 10 tablas del modelo Power BI: asi el
+-- segmentador de simulacion filtra TODAS las paginas (todas las vistas
+-- comparten simulation_id; era el unico campo capaz de cruzar tablas sin DAX).
+CREATE OR REPLACE VIEW Aeroflow.D_SIMULACIONES AS
+SELECT
+  v.simulation_id
+FROM Aeroflow.V0_salidas v
+GROUP BY v.simulation_id
 ;

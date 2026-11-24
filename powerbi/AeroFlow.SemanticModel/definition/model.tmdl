@@ -3,6 +3,7 @@ model Model
 	defaultPowerBIDataSourceVersion: powerBI_V3
 	sourceQueryCulture: es-ES
 
+ref table D_SIMULACIONES
 ref table D1_salidas_por_puerta_destino
 ref table D2_pct_sobre_umbral_puerta
 ref table D4_laborables_fin_semana
@@ -13,3 +14,53 @@ ref table D6_retraso_medio_magnitud
 ref table D7_aviones_repetidos_dia
 ref table D8_compania_modelo
 ref table D9_aviones_con_superacion
+
+relationship D_SIMULACIONES__D1_salidas_por_puerta_destino
+	fromColumn: D_SIMULACIONES.simulation_id
+	toColumn: D1_salidas_por_puerta_destino.simulation_id
+	crossFilteringBehavior: bothDirections
+
+relationship D_SIMULACIONES__D2_pct_sobre_umbral_puerta
+	fromColumn: D_SIMULACIONES.simulation_id
+	toColumn: D2_pct_sobre_umbral_puerta.simulation_id
+	crossFilteringBehavior: bothDirections
+
+relationship D_SIMULACIONES__D4_laborables_fin_semana
+	fromColumn: D_SIMULACIONES.simulation_id
+	toColumn: D4_laborables_fin_semana.simulation_id
+	crossFilteringBehavior: bothDirections
+
+relationship D_SIMULACIONES__D10_salidas_detalle
+	fromColumn: D_SIMULACIONES.simulation_id
+	toColumn: D10_salidas_detalle.simulation_id
+	crossFilteringBehavior: bothDirections
+
+relationship D_SIMULACIONES__D5_companias
+	fromColumn: D_SIMULACIONES.simulation_id
+	toColumn: D5_companias.simulation_id
+	crossFilteringBehavior: bothDirections
+
+relationship D_SIMULACIONES__D5b_companias_por_puerta
+	fromColumn: D_SIMULACIONES.simulation_id
+	toColumn: D5b_companias_por_puerta.simulation_id
+	crossFilteringBehavior: bothDirections
+
+relationship D_SIMULACIONES__D6_retraso_medio_magnitud
+	fromColumn: D_SIMULACIONES.simulation_id
+	toColumn: D6_retraso_medio_magnitud.simulation_id
+	crossFilteringBehavior: bothDirections
+
+relationship D_SIMULACIONES__D7_aviones_repetidos_dia
+	fromColumn: D_SIMULACIONES.simulation_id
+	toColumn: D7_aviones_repetidos_dia.simulation_id
+	crossFilteringBehavior: bothDirections
+
+relationship D_SIMULACIONES__D8_compania_modelo
+	fromColumn: D_SIMULACIONES.simulation_id
+	toColumn: D8_compania_modelo.simulation_id
+	crossFilteringBehavior: bothDirections
+
+relationship D_SIMULACIONES__D9_aviones_con_superacion
+	fromColumn: D_SIMULACIONES.simulation_id
+	toColumn: D9_aviones_con_superacion.simulation_id
+	crossFilteringBehavior: bothDirections

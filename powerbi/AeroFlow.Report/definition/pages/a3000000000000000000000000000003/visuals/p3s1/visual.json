@@ -3,10 +3,10 @@
   "name": "p3s1",
   "position": {
     "x": 20,
-    "y": 160,
+    "y": 272,
     "z": 9,
     "width": 165,
-    "height": 260,
+    "height": 148,
     "tabOrder": 9
   },
   "visual": {
@@ -105,63 +105,5 @@
         }
       ]
     }
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "d2f862f1bc19c0f911f6",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "D5_companias"
-              }
-            },
-            "Property": "simulation_id"
-          }
-        },
-        "type": "Categorical",
-        "filter": {
-          "Version": 2,
-          "From": [
-            {
-              "Name": "t",
-              "Entity": "D5_companias",
-              "Type": 0
-            }
-          ],
-          "Where": [
-            {
-              "Condition": {
-                "In": {
-                  "Expressions": [
-                    {
-                      "Column": {
-                        "Expression": {
-                          "SourceRef": {
-                            "Source": "t"
-                          }
-                        },
-                        "Property": "simulation_id"
-                      }
-                    }
-                  ],
-                  "Values": [
-                    [
-                      {
-                        "Literal": {
-                          "Value": "'SIM-01'"
-                        }
-                      }
-                    ]
-                  ]
-                }
-              }
-            }
-          ]
-        },
-        "howCreated": "User"
-      }
-    ]
   }
 }

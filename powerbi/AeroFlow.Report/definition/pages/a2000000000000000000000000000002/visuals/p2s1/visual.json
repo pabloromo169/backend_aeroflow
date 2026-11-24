@@ -3,10 +3,10 @@
   "name": "p2s1",
   "position": {
     "x": 20,
-    "y": 20,
+    "y": 92,
     "z": 9,
     "width": 196,
-    "height": 152,
+    "height": 80,
     "tabOrder": 9
   },
   "visual": {
@@ -105,63 +105,5 @@
         }
       ]
     }
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "21af85baf80c30732d6c",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "D10_salidas_detalle"
-              }
-            },
-            "Property": "simulation_id"
-          }
-        },
-        "type": "Categorical",
-        "filter": {
-          "Version": 2,
-          "From": [
-            {
-              "Name": "t",
-              "Entity": "D10_salidas_detalle",
-              "Type": 0
-            }
-          ],
-          "Where": [
-            {
-              "Condition": {
-                "In": {
-                  "Expressions": [
-                    {
-                      "Column": {
-                        "Expression": {
-                          "SourceRef": {
-                            "Source": "t"
-                          }
-                        },
-                        "Property": "simulation_id"
-                      }
-                    }
-                  ],
-                  "Values": [
-                    [
-                      {
-                        "Literal": {
-                          "Value": "'SIM-01'"
-                        }
-                      }
-                    ]
-                  ]
-                }
-              }
-            }
-          ]
-        },
-        "howCreated": "User"
-      }
-    ]
   }
 }

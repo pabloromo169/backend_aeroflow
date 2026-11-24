@@ -66,7 +66,7 @@ Resultado final:
 | Salidas que superan el umbral | 374 (37,14 %) |
 | Aviones distintos | 50 (50 con al menos una superación) |
 
-Las 14 vistas compilan y consultan correctamente. Los totales de D2, D3, D4, D5, D5b,
+Las 15 vistas compilan y consultan correctamente. Los totales de D2, D3, D4, D5, D5b,
 D6 y D8 reconcilian con D9: **1.007 salidas válidas y 374 superaciones**.
 
 > **Cambio respecto a la primera ejecución.** La primera pasada de `SIM-01` almacenó
@@ -1162,14 +1162,14 @@ la evidencia.
 
 ### 10.0. Definiciones versionadas
 
-Las 14 vistas están exportadas en `deploy/dremio/vistas-aeroflow.sql`, con un
+Las 15 vistas están exportadas en `deploy/dremio/vistas-aeroflow.sql`, con un
 `CREATE OR REPLACE VIEW Aeroflow.<nombre> AS …` por vista en orden de dependencia
 (`V0_salidas` y `V0_puertas` primero). El fichero es la copia de seguridad del
 espacio `Aeroflow`: permite recrearlo en una instalación nueva y pegar las
 definiciones en los anexos de la memoria.
 
 Se generó desde el catálogo de Dremio, no a mano, y se validó ejecutando cada
-definición como subconsulta: **14/14 compilan** y devuelven las mismas filas que las
+definición como subconsulta: **15/15 compilan** y devuelven las mismas filas que las
 vistas desplegadas.
 
 ### 10.1. Crear una vista
@@ -1459,7 +1459,7 @@ Aeroflow.D9_aviones_con_superacion
 - [x] Documentación de dialecto, incidencias e identificadores.
 - [x] Power BI conectado a las vistas de Dremio en DirectQuery (comprobado).
 - [x] Evidencia post-fin con `SIM-POSTEND`: 3 salidas cruzan el fin del periodo.
-- [x] Definiciones de las 14 vistas exportadas a `deploy/dremio/vistas-aeroflow.sql`.
+- [x] Definiciones de las 15 vistas exportadas a `deploy/dremio/vistas-aeroflow.sql`.
 - [x] Aplicación web (frontend + backend) contra MongoDB, desplegada.
 - [x] Pruebas funcionales 5 y 6 (configuración desde la web y nuevas salidas).
 

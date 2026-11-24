@@ -36,6 +36,12 @@ PAGES = REPORT / "definition" / "pages"
 
 SIM = "SIM-01"
 
+# Todas las vistas comparten simulation_id: es la unica dimension por la que
+# se puede filtrar el informe entero. Se materializa como tabla de dimension
+# con relaciones 1:* hacia el resto (ver RELACIONES), y un slicer por pagina
+# preseleccionado en SIM-01.
+SIMULACIONES = "D_SIMULACIONES"
+
 # --- tablas y sus columnas (tipos de Dremio) ---
 TABLAS = {
     "D1_salidas_por_puerta_destino": [
@@ -93,6 +99,9 @@ TABLAS = {
         ("over_threshold_departures", "int64"),
         ("pct_aircraft_with_exceedance", "double"),
         ("pct_departures_over_threshold", "double")],
+    # Dimension de simulaciones: una fila por simulation_id. Con las
+    # relaciones de RELACIONES permite un slicer que filtra todas las paginas.
+    SIMULACIONES: [("simulation_id", "string")],
 }
 
 # Columnas de orden: la columna visible se ordena por esta (sortByColumn).
@@ -102,6 +111,17 @@ ORDENAR_POR = {
     "D10_salidas_detalle": {"time_band": "time_band_orden"},
     "D4_laborables_fin_semana": {"day_type": "day_type_orden"},
 }
+
+# Relaciones 1:* desde la dimension de simulaciones a cada tabla de hechos.
+# Todas comparten simulation_id, asi que este es el unico filtro que puede
+# cruzar tablas sin DAX. Granularidad cruzada: uno a uno en la practica
+# (una simulacion siempre esta en ambas), filtrado en ambos sentidos para
+# que el slicer funcione y que ninguna tabla quede huerfana.
+RELACIONES = ["D1_salidas_por_puerta_destino", "D2_pct_sobre_umbral_puerta",
+              "D4_laborables_fin_semana", "D10_salidas_detalle",
+              "D5_companias", "D5b_companias_por_puerta",
+              "D6_retraso_medio_magnitud", "D7_aviones_repetidos_dia",
+              "D8_compania_modelo", "D9_aviones_con_superacion"]
 
 # Funciones de agregacion implicitas (enum QueryAggregateFunction de PBIR).
 SUMA, MEDIA, DISTINTOS, MINIMO, MAXIMO, CONTAR = 0, 1, 2, 3, 4, 5
@@ -255,11 +275,47 @@ def visual(nombre, tipo, x, y, ancho, alto, roles, titulo=None, z=0,
 
 
 def filtros_tabla(entidad, sufijo, extra=None):
-    """Filtro de simulacion (obligatorio) + filtros adicionales de esa tabla."""
-    fs = [filtro_simulacion(entidad, f"{sufijo}-sim")]
-    if extra:
-        fs.extend(extra)
+    """Filtros adicionales de esa tabla.
+
+    El de simulacion ya NO va aqui: la dimension D_SIMULACIONES, con
+    relaciones 1:* a todas las tablas, lo aporta el segmentador de cada
+    pagina. Un filtro fijo SIM-01 en cada visual entraria en conflicto con
+    el segmentador y dejaria las paginas en blanco al cambiar de simulacion.
+    """
+    if not extra:
+        return []
+    fs = list(extra)
     return fs
+
+
+def slicer_simulacion(nombre, x, y, ancho, alto, sufijo):
+    """Segmentador de simulacion, preseleccionado en SIM-01.
+
+    Es el unico campo que puede filtrar TODAS las tablas del informe (todas
+    comparten simulation_id y hay relaciones 1:* desde la dimension). La
+    seleccion por defecto viaja en objects.general[0].properties.filter como
+    un filtro categorico guardado dentro del propio slicer: al abrir, el
+    informe muestra SIM-01; cambiar la seleccion actualiza todas las paginas.
+    """
+    v = slicer(nombre, SIMULACIONES, "simulation_id", x, y, ancho, alto,
+               sufijo, "Simulación")
+    seleccion = {
+        "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/filter/1.0.0/schema.json",
+        "From": [{"Name": "t", "Entity": SIMULACIONES, "Type": 0}],
+        "Where": [{"Condition": {"In": {
+            "Expressions": [{"Column": {
+                "Expression": {"SourceRef": {"Source": "t"}},
+                "Property": "simulation_id"}}],
+            "Values": [[{"Literal": st(f"'{SIM}'")}]],
+        }}}],
+        "filterType": 1,
+    }
+    v["visual"]["objects"] = {
+        "general": [{"properties": {"filter": lit(json.dumps(seleccion))}}],
+        "selection": v["visual"]["objects"]["selection"],
+        "value": v["visual"]["objects"]["value"],
+    }
+    return v
 
 
 def slicer(nombre, entidad, campo, x, y, ancho, alto, sufijo, titulo,
@@ -383,7 +439,9 @@ p1 = [
            filtros=filtros_tabla(D9, "p1c5")),
 
     # --- filtro de puerta (afecta a los dos graficos) -------------------
-    slicer("p1s1", D2, "gate_id", 20, 175, 180, 525, "p1s1", "Puerta"),
+    # --- filtros: simulacion (comun, arriba) + puerta --------------------
+    slicer_simulacion("p1s0", 20, 175, 180, 120, "p1s0"),
+    slicer("p1s1", D2, "gate_id", 20, 307, 180, 393, "p1s1", "Puerta"),
 
     # --- barras por puerta ----------------------------------------------
     # Recuento y porcentaje en graficos separados, como en la pagina 2.
@@ -411,7 +469,8 @@ p1 = [
 # y ambos graficos de franja.
 p2 = [
     # --- banda superior: segmentador + tarjetas ------------------------
-    slicer("p2s1", D10, "time_band", 20, 20, 196, 152, "p2s1",
+    slicer_simulacion("p2s0", 20, 20, 196, 60, "p2s0"),
+    slicer("p2s1", D10, "time_band", 20, 92, 196, 80, "p2s1",
            "Franja horaria"),
 
     visual("p2c1", "card", 224, 20, 250, 152,
@@ -556,7 +615,8 @@ p3 = [
            filtros=filtros_tabla(D7, "p3c4")),
 
     # Barras horizontales, ordenadas de mayor a menor, con etiquetas de datos.
-    slicer("p3s1", D5, "airline", 20, 160, 165, 260, "p3s1", "Compañía"),
+    slicer_simulacion("p3s0", 20, 160, 165, 100, "p3s0"),
+    slicer("p3s1", D5, "airline", 20, 272, 165, 148, "p3s1", "Compañía"),
 
     visual("p3b1", "clusteredBarChart", 200, 160, 430, 260,
            {"Category": [proy_columna(D5, "airline")],
@@ -672,13 +732,22 @@ def escribir_modelo():
         if viejo.stem not in TABLAS:
             viejo.unlink()
 
-    refs = "\n".join(f"ref table {t}" for t in TABLAS)
+    refs = "\n".join(f"ref table {t}" for t in [SIMULACIONES] + RELACIONES)
+    # Relaciones 1:* desde la dimension de simulaciones. En TMDL, una
+    # relacion vive en el model con fromColumn/toColumn y crossFiltering
+    # both para que el slicer de simulacion alcance a todos los visuales.
+    rels = "\n\n".join(
+        f"relationship {SIMULACIONES}__{t}\n"
+        "\tfromColumn: " + SIMULACIONES + ".simulation_id\n"
+        f"\ttoColumn: {t}.simulation_id\n"
+        "\tcrossFilteringBehavior: bothDirections"
+        for t in RELACIONES)
     (DESTINO / "AeroFlow.SemanticModel" / "definition" / "model.tmdl").write_text(
         "model Model\n"
         "\tculture: es-ES\n"
         "\tdefaultPowerBIDataSourceVersion: powerBI_V3\n"
         "\tsourceQueryCulture: es-ES\n\n"
-        f"{refs}\n", encoding="utf-8")
+        f"{refs}\n\n{rels}\n", encoding="utf-8")
 
 
 def main():

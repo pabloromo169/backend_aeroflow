@@ -251,8 +251,8 @@ Microsoft. El TMDL no lo valida: lo valida Power BI al abrir.
 | Comprobación | Resultado |
 |---|---|
 | Esquemas PBIR (Microsoft) | 0 errores, 0 avisos |
-| Todos los campos de los visuales existen en el modelo | 26/26 |
-| Todos los visuales consultados filtran su propia tabla | 26/26 |
+| Todos los campos de los visuales existen en el modelo | 29/29 |
+| Todos los visuales consultados filtran su propia tabla (directa o via dimension) | 29/29 |
 | Solapes y desbordes de página | ninguno (1280×720) |
 | Cifras contra Dremio (SIM-01) | 1.007 y 374 en las tres páginas |
 | Exceso máximo | 60 min (antes 40.430) |
@@ -261,7 +261,7 @@ Microsoft. El TMDL no lo valida: lo valida Power BI al abrir.
 | Días del periodo sin huecos | 7 días, 05/10 a 11/10 |
 | Registros duplicados | 0 (1.007 `event_id` distintos de 1.007 filas) |
 | Tipo de día correcto por fecha | 5 laborables (L–V), 2 fin de semana (S–D) |
-| Vistas del fichero SQL compiladas en Dremio | 14/14 |
+| Vistas del fichero SQL compiladas en Dremio | 15/15 |
 
 ## Cifras de referencia (SIM-01)
 
