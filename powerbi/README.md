@@ -138,6 +138,10 @@ todas las vistas, y único en la dimensión. Sobre esa estructura:
   por simulación: D10 1.007, D7 107, D5b 50, D1 20, D6 20, D5 10, D8 10,
   D2 5, D4 2). No hay ninguna relación n:n: exigiría valores duplicados de
   `simulation_id` en la dimensión, que no los tiene.
+- **Convención TMDL que conviene recordar**: en el fichero, `fromColumn` es
+  el lado `*` y `toColumn` el lado `1` (TOM lo exige: `fromCardinality: one`
+  solo se admite en relaciones 1:1). En la vista de modelo el `1` se pinta
+  igualmente en la dimensión; solo D9 declara `one` en ambos extremos.
 - La **vista de modelo** se abre organizada: dimensión en el centro, tablas
   alrededor (`diagramLayout.json` generado con las posiciones y lineageTags
   estables de cada tabla).

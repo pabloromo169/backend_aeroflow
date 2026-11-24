@@ -749,21 +749,21 @@ def escribir_modelo():
             viejo.unlink()
 
     refs = "\n".join(f"ref table {t}" for t in [SIMULACIONES] + RELACIONES)
-    # Relaciones desde la dimension de simulaciones. En TMDL los valores por
-    # defecto son fromCardinality: many y toCardinality: one, asi que SIN
-    # declararlos el * caeria en la dimension y la vista de modelo mostraria
-    # las relaciones invertidas. Se declaran explicitos: fromCardinality: one
-    # (la dimension, con simulation_id unico) y toCardinality: one para D9
-    # (una fila por simulacion) o many para el resto (varias filas).
-    # crossFilteringBehavior: bothDirections para que el slicer de simulacion
-    # alcance a todos los visuales.
+    # Relaciones de la dimension de simulaciones con cada tabla.
+    # CONVENCION TMDL: el extremo From es el lado * (TOM lo exige: "From solo
+    # puede ser One si la relacion es 1:1" — error PFE_TM_RELATIONSHIP_ONE_TO_
+    # MANY de Desktop). Asi que fromColumn es la tabla de hechos y toColumn la
+    # dimension; en la vista de modelo la cardinalidad se pinta igual con el
+    # 1 en la dimension y el * en la tabla. Por defecto TMDL ya es
+    # many->one (1:*), solo se declara la 1:1 de D9 (una fila por simulacion),
+    # que exige filtrado en ambos sentidos. Todo lo demas tambien filtra en
+    # ambos sentidos para que el slicer de simulacion alcance a todos.
     rels = "\n\n".join(
         f"relationship {SIMULACIONES}__{t}\n"
-        "\tfromCardinality: one\n"
-        "\tfromColumn: " + SIMULACIONES + ".simulation_id\n"
-        f"\ttoColumn: {t}.simulation_id\n"
-        + ("\ttoCardinality: one\n" if t in UNO_A_UNO
-           else "\ttoCardinality: many\n")
+        + ("\tfromCardinality: one\n" if t in UNO_A_UNO else "")
+        + f"\tfromColumn: {t}.simulation_id\n"
+        f"\ttoColumn: {SIMULACIONES}.simulation_id\n"
+        + ("\ttoCardinality: one\n" if t in UNO_A_UNO else "")
         + "\tcrossFilteringBehavior: bothDirections"
         for t in RELACIONES)
     (DESTINO / "AeroFlow.SemanticModel" / "definition" / "model.tmdl").write_text(
