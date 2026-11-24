@@ -1,0 +1,15 @@
+8 y 9 de octubre: creacion de simulador de sensores, instalacion y preparacion de kafka, mongodb y Nifi
+9 de octubre: prueba de conexion del simulador con kafka correcta y la generacion de datos desde el sensor dio el resultado esperado.
+10 de octubre: consumidor kafka desde nifi funcionando
+11,12 y 13 de octubre: Implementación del flujo que consume el topic de configuración, lo valida y lo escribe en MongoDB
+1, 2 y 3 de noviembre: terminadas consultas dremio
+3 de noviembre: hecha pagina web básica
+4 de noviembre: web estilizada y consumo de mongodb
+5 de noviembre: añadido controlador de simulador
+6 de noviembre: muestra en tiempo real de la simulación
+15 de noviembre: primera pagina del dashboard a medias
+16 de noviembre: primera pagina del dashboard terminada
+17 y 18 de noviembre: segunda pagina del dashboard a medias y añadida consulta extra en dremio
+19 de noviembre: segunda pagina del dashboard terminada
+20, 21 y 22 de noviembre: tercera pagina del dashboard empezada y añadida consulta extra en dremio
+23 de noviembre: terminada la tercera pagina del dashboard

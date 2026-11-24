@@ -1465,12 +1465,13 @@ Aeroflow.D9_aviones_con_superacion
 
 ### Pendiente
 
-- [ ] Construir las tres páginas del informe Power BI (la conexión DirectQuery ya
-  está verificada).
+- [x] Construir las tres páginas del informe Power BI (26 visuales validados,
+  cifras reconciliadas contra Dremio).
+- [x] Interpretación de resultados (borrador de trabajo en
+  `docs/interpretacion-resultados.md`): tres hallazgos, dos prioridades de
+  seguimiento y trazabilidad hacia la configuración del simulador.
 - [ ] Documentar en un solo documento las pruebas funcionales 1–4 (hoy repartidas
   entre la guía de NiFi y la de Dremio).
-- [ ] Redactar la interpretación de resultados: tres hallazgos y dos prioridades de
-  seguimiento.
 - [ ] Memoria en LaTeX y vídeo de demostración.
 
 ---
