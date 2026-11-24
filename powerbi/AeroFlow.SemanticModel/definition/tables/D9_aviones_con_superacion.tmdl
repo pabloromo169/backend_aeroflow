@@ -1,4 +1,5 @@
 table D9_aviones_con_superacion
+	lineageTag: {b3c7b82c-1f52-5de4-9f52-8952eb559b1c}
 
 	column simulation_id
 		dataType: string

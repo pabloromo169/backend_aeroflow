@@ -29,6 +29,12 @@ import hashlib
 import json
 import pathlib
 import shutil
+import uuid
+
+
+def lineas_tag(guid):
+    """GUID en el formato que espera TMDL: {xxxxxxxx-...}."""
+    return "{" + guid + "}"
 
 DESTINO = pathlib.Path("/home/pablo/backend_aeroflow/powerbi")
 REPORT = DESTINO / "AeroFlow.Report"
@@ -122,6 +128,13 @@ RELACIONES = ["D1_salidas_por_puerta_destino", "D2_pct_sobre_umbral_puerta",
               "D5_companias", "D5b_companias_por_puerta",
               "D6_retraso_medio_magnitud", "D7_aviones_repetidos_dia",
               "D8_compania_modelo", "D9_aviones_con_superacion"]
+
+# D9 resume CADA simulacion en UNA fila (una fila por simulation_id), asi que
+# su relacion con la dimension es 1:1. El resto de tablas tienen varias filas
+# por simulacion: 1:*. No hay ninguna n:n: la unica columna compartida por
+# todas las vistas es simulation_id, y en la dimension es unica; una relacion
+# n:n exigiria columnas duplicadas en ambos lados y no aportaria nada aqui.
+UNO_A_UNO = {"D9_aviones_con_superacion"}
 
 # Funciones de agregacion implicitas (enum QueryAggregateFunction de PBIR).
 SUMA, MEDIA, DISTINTOS, MINIMO, MAXIMO, CONTAR = 0, 1, 2, 3, 4, 5
@@ -694,7 +707,10 @@ def escribir_modelo():
                 "boolean": "boolean", "date": "dateTime"}[t]
 
     for tabla, cols in TABLAS.items():
-        lineas = [f"table {tabla}", ""]
+        # lineageTag estable (derivado del nombre) para que diagramLayout.json
+        # pueda referenciar cada tarjeta sin depender del orden.
+        lineage = str(uuid.uuid5(uuid.NAMESPACE_URL, f"aeroflow/{tabla}"))
+        lineas = [f"table {tabla}", f"\tlineageTag: {lineas_tag(lineage)}", ""]
         for nombre, tipo in cols:
             lineas.append(f"\tcolumn {nombre}")
             lineas.append(f"\t\tdataType: {tmdl_tipo(tipo)}")
@@ -733,14 +749,22 @@ def escribir_modelo():
             viejo.unlink()
 
     refs = "\n".join(f"ref table {t}" for t in [SIMULACIONES] + RELACIONES)
-    # Relaciones 1:* desde la dimension de simulaciones. En TMDL, una
-    # relacion vive en el model con fromColumn/toColumn y crossFiltering
-    # both para que el slicer de simulacion alcance a todos los visuales.
+    # Relaciones desde la dimension de simulaciones. En TMDL los valores por
+    # defecto son fromCardinality: many y toCardinality: one, asi que SIN
+    # declararlos el * caeria en la dimension y la vista de modelo mostraria
+    # las relaciones invertidas. Se declaran explicitos: fromCardinality: one
+    # (la dimension, con simulation_id unico) y toCardinality: one para D9
+    # (una fila por simulacion) o many para el resto (varias filas).
+    # crossFilteringBehavior: bothDirections para que el slicer de simulacion
+    # alcance a todos los visuales.
     rels = "\n\n".join(
         f"relationship {SIMULACIONES}__{t}\n"
+        "\tfromCardinality: one\n"
         "\tfromColumn: " + SIMULACIONES + ".simulation_id\n"
         f"\ttoColumn: {t}.simulation_id\n"
-        "\tcrossFilteringBehavior: bothDirections"
+        + ("\ttoCardinality: one\n" if t in UNO_A_UNO
+           else "\ttoCardinality: many\n")
+        + "\tcrossFilteringBehavior: bothDirections"
         for t in RELACIONES)
     (DESTINO / "AeroFlow.SemanticModel" / "definition" / "model.tmdl").write_text(
         "model Model\n"
@@ -748,6 +772,54 @@ def escribir_modelo():
         "\tdefaultPowerBIDataSourceVersion: powerBI_V3\n"
         "\tsourceQueryCulture: es-ES\n\n"
         f"{refs}\n\n{rels}\n", encoding="utf-8")
+
+    # Vista de modelo: posiciones de las tarjetas para que el diagrama se
+    # abra organizado (dimension en el centro, tablas alrededor) en lugar de
+    # amontonadas en una esquina. Desktop lo respeta al abrir el proyecto.
+    # Cada tarjeta mide 234x152 (o 234x274 si se expande); el orden es el de
+    # lectura: dimension al centro, grano de vuelo al lado, agregados despues.
+    posiciones = {
+        SIMULACIONES: (500, 300),
+        "D10_salidas_detalle": (860, 60),
+        "D1_salidas_por_puerta_destino": (860, 260),
+        "D2_pct_sobre_umbral_puerta": (860, 460),
+        "D4_laborables_fin_semana": (860, 660),
+        "D5_companias": (140, 60),
+        "D5b_companias_por_puerta": (140, 260),
+        "D6_retraso_medio_magnitud": (140, 460),
+        "D7_aviones_repetidos_dia": (140, 660),
+        "D8_compania_modelo": (500, 60),
+        "D9_aviones_con_superacion": (500, 520),
+    }
+    nodos = [
+        {
+            "location": {"x": x, "y": y},
+            "nodeIndex": t,
+            "nodeLineageTag": str(uuid.uuid5(uuid.NAMESPACE_URL,
+                                             f"aeroflow/{t}")),
+            "size": {"height": 152, "width": 234},
+            "zIndex": 0,
+        }
+        for t, (x, y) in posiciones.items()
+    ]
+    layout = {
+        "version": "1.1.0",
+        "diagrams": [{
+            "ordinal": 0,
+            "scrollPosition": {"x": 0, "y": 0},
+            "nodes": nodos,
+            "name": "All tables",
+            "zoomValue": 100,
+            "pinKeyFieldsToTop": False,
+            "showExtraHeaderInfo": False,
+            "hideKeyFieldsWhenCollapsed": False,
+            "tablesLocked": False,
+        }],
+        "selectedDiagram": "All tables",
+        "defaultDiagram": "All tables",
+    }
+    (DESTINO / "AeroFlow.SemanticModel" / "diagramLayout.json").write_text(
+        json.dumps(layout, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def main():

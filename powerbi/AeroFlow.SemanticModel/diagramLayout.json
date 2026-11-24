@@ -1,0 +1,165 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 500,
+            "y": 300
+          },
+          "nodeIndex": "D_SIMULACIONES",
+          "nodeLineageTag": "b683d476-bd10-57e7-810a-f4bf9a71dc25",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 860,
+            "y": 60
+          },
+          "nodeIndex": "D10_salidas_detalle",
+          "nodeLineageTag": "90225c79-563c-5160-9596-72f19b8640e9",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 860,
+            "y": 260
+          },
+          "nodeIndex": "D1_salidas_por_puerta_destino",
+          "nodeLineageTag": "0f1209a5-7a0b-543c-b56b-213def5c8fbd",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 860,
+            "y": 460
+          },
+          "nodeIndex": "D2_pct_sobre_umbral_puerta",
+          "nodeLineageTag": "063a60cb-3d99-5de3-991c-a5a19a9cf71a",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 860,
+            "y": 660
+          },
+          "nodeIndex": "D4_laborables_fin_semana",
+          "nodeLineageTag": "96d9a6e8-cdc5-5888-ae61-b583a4cef78c",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 140,
+            "y": 60
+          },
+          "nodeIndex": "D5_companias",
+          "nodeLineageTag": "3911cba0-5b9c-5286-a580-f631d6e4ad32",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 140,
+            "y": 260
+          },
+          "nodeIndex": "D5b_companias_por_puerta",
+          "nodeLineageTag": "5ce8747d-a76a-5433-a5a3-b1f6e2619bbd",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 140,
+            "y": 460
+          },
+          "nodeIndex": "D6_retraso_medio_magnitud",
+          "nodeLineageTag": "a1962910-f71b-55c2-bac3-801dd2c3a73a",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 140,
+            "y": 660
+          },
+          "nodeIndex": "D7_aviones_repetidos_dia",
+          "nodeLineageTag": "14fd43f8-5880-5458-846b-bce378d17d4e",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 500,
+            "y": 60
+          },
+          "nodeIndex": "D8_compania_modelo",
+          "nodeLineageTag": "c0b0c8d9-6c04-5fd8-97c3-cd5bab36ba19",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 500,
+            "y": 520
+          },
+          "nodeIndex": "D9_aviones_con_superacion",
+          "nodeLineageTag": "b3c7b82c-1f52-5de4-9f52-8952eb559b1c",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

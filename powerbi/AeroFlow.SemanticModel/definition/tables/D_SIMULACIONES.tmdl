@@ -1,4 +1,5 @@
 table D_SIMULACIONES
+	lineageTag: {b683d476-bd10-57e7-810a-f4bf9a71dc25}
 
 	column simulation_id
 		dataType: string

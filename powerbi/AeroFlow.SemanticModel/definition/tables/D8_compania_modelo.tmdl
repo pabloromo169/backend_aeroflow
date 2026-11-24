@@ -1,4 +1,5 @@
 table D8_compania_modelo
+	lineageTag: {c0b0c8d9-6c04-5fd8-97c3-cd5bab36ba19}
 
 	column simulation_id
 		dataType: string

@@ -1,4 +1,5 @@
 table D1_salidas_por_puerta_destino
+	lineageTag: {0f1209a5-7a0b-543c-b56b-213def5c8fbd}
 
 	column simulation_id
 		dataType: string

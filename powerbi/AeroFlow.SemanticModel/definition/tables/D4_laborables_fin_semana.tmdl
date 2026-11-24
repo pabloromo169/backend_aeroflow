@@ -1,4 +1,5 @@
 table D4_laborables_fin_semana
+	lineageTag: {96d9a6e8-cdc5-5888-ae61-b583a4cef78c}
 
 	column simulation_id
 		dataType: string

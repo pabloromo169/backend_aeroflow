@@ -16,51 +16,71 @@ ref table D8_compania_modelo
 ref table D9_aviones_con_superacion
 
 relationship D_SIMULACIONES__D1_salidas_por_puerta_destino
+	fromCardinality: one
 	fromColumn: D_SIMULACIONES.simulation_id
 	toColumn: D1_salidas_por_puerta_destino.simulation_id
+	toCardinality: many
 	crossFilteringBehavior: bothDirections
 
 relationship D_SIMULACIONES__D2_pct_sobre_umbral_puerta
+	fromCardinality: one
 	fromColumn: D_SIMULACIONES.simulation_id
 	toColumn: D2_pct_sobre_umbral_puerta.simulation_id
+	toCardinality: many
 	crossFilteringBehavior: bothDirections
 
 relationship D_SIMULACIONES__D4_laborables_fin_semana
+	fromCardinality: one
 	fromColumn: D_SIMULACIONES.simulation_id
 	toColumn: D4_laborables_fin_semana.simulation_id
+	toCardinality: many
 	crossFilteringBehavior: bothDirections
 
 relationship D_SIMULACIONES__D10_salidas_detalle
+	fromCardinality: one
 	fromColumn: D_SIMULACIONES.simulation_id
 	toColumn: D10_salidas_detalle.simulation_id
+	toCardinality: many
 	crossFilteringBehavior: bothDirections
 
 relationship D_SIMULACIONES__D5_companias
+	fromCardinality: one
 	fromColumn: D_SIMULACIONES.simulation_id
 	toColumn: D5_companias.simulation_id
+	toCardinality: many
 	crossFilteringBehavior: bothDirections
 
 relationship D_SIMULACIONES__D5b_companias_por_puerta
+	fromCardinality: one
 	fromColumn: D_SIMULACIONES.simulation_id
 	toColumn: D5b_companias_por_puerta.simulation_id
+	toCardinality: many
 	crossFilteringBehavior: bothDirections
 
 relationship D_SIMULACIONES__D6_retraso_medio_magnitud
+	fromCardinality: one
 	fromColumn: D_SIMULACIONES.simulation_id
 	toColumn: D6_retraso_medio_magnitud.simulation_id
+	toCardinality: many
 	crossFilteringBehavior: bothDirections
 
 relationship D_SIMULACIONES__D7_aviones_repetidos_dia
+	fromCardinality: one
 	fromColumn: D_SIMULACIONES.simulation_id
 	toColumn: D7_aviones_repetidos_dia.simulation_id
+	toCardinality: many
 	crossFilteringBehavior: bothDirections
 
 relationship D_SIMULACIONES__D8_compania_modelo
+	fromCardinality: one
 	fromColumn: D_SIMULACIONES.simulation_id
 	toColumn: D8_compania_modelo.simulation_id
+	toCardinality: many
 	crossFilteringBehavior: bothDirections
 
 relationship D_SIMULACIONES__D9_aviones_con_superacion
+	fromCardinality: one
 	fromColumn: D_SIMULACIONES.simulation_id
 	toColumn: D9_aviones_con_superacion.simulation_id
+	toCardinality: one
 	crossFilteringBehavior: bothDirections

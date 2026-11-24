@@ -1,4 +1,5 @@
 table D5_companias
+	lineageTag: {3911cba0-5b9c-5286-a580-f631d6e4ad32}
 
 	column simulation_id
 		dataType: string

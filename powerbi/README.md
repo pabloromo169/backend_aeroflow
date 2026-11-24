@@ -61,12 +61,12 @@ una tabla comparativa por tipo de día. Todo con segmentación por franja horari
 Fuentes: `D10_salidas_detalle` (toda la página) y `D4_laborables_fin_semana`
 (solo la tabla de tipo de día).
 
-**Por qué esta página usa una sola tabla.** Es la única forma de que el
-segmentador de franja filtre de verdad a todos los visuales: el modelo no tiene
-relaciones entre tablas, así que un segmentador solo alcanza a la tabla a la que
-está enlazado. `D10_salidas_detalle` está a grano de vuelo (1.007 filas en
-`SIM-01`) precisamente para poder servir a la vez a tarjetas, evolución y ambos
-gráficos de franja.
+**Por qué esta página usa una sola tabla.** Es la forma más robusta de que el
+segmentador de franja filtre a todos los visuales de la página: todos comparten
+`D10_salidas_detalle`, a grano de vuelo (1.007 filas en `SIM-01`), así que el
+slicer los alcanza a la vez — sin depender de relaciones entre tablas, que solo
+existen vía la dimensión de simulación. Sirve a la vez a tarjetas, evolución y
+ambos gráficos de franja.
 
 **La única excepción, y por qué.** La tabla de tipo de día va a nivel de periodo y
 lo dice en su subtítulo («Periodo completo (no depende del filtro de franja)»).
@@ -102,15 +102,15 @@ modelo, superaciones por puerta y una tabla de puerta/destino.
 Fuentes: `D5_companias`, `D5b_companias_por_puerta`, `D6_retraso_medio_magnitud`,
 `D7_aviones_repetidos_dia`, `D8_compania_modelo`.
 
-## Por qué cada visual lleva su propio filtro
+## Por qué hay una dimensión de simulaciones y relaciones
 
-Este es el punto clave del diseño y merece explicación, porque es contraintuitivo.
+Este es el punto clave del diseño y merece explicación, porque fue contraintuitivo.
 
-**El filtro de página no basta.** Las diez tablas del modelo son vistas de
-Dremio y **no tienen relaciones entre sí**: no hay una tabla de dimensiones común,
-cada una es independiente. En Power BI, un filtro de página
-solo alcanza a la tabla por la que filtra. Si la página filtra por
-`D9.simulation_id`, los visuales que usan `D5` o `D6` **no** quedan filtrados.
+**El filtro de página no basta.** Las tablas del modelo son vistas de Dremio y,
+por sí solas, no tienen nada que las relacione: cada una es independiente. En
+Power BI, un filtro de página solo alcanza a la tabla por la que filtra. Si la
+página filtra por `D9.simulation_id`, los visuales que usan `D5` o `D6` **no**
+quedan filtrados.
 
 Ese fue el error de la primera versión y explica exactamente las cifras que se
 veían mal:
@@ -124,17 +124,28 @@ veían mal:
 Las tarjetas daban 1.007 porque usan `D9`, la misma tabla que el filtro de
 página. Los demás visuales, al usar otras tablas, se mostraban sin filtrar.
 
-**Solución:** cada visual declara un filtro categórico sobre
-`simulation_id = 'SIM-01'` **de su propia tabla**. Son 20 filtros, uno por
-visual, generados automáticamente por el script. Así los totales cuadran con
-independencia de la tabla que use cada gráfico.
+**Solución:** una tabla de dimensión `D_SIMULACIONES` (una fila por
+`simulation_id`, vista de Dremio sobre `V0_salidas`) con **relaciones hacia las
+10 tablas** del modelo, todas por `simulation_id` — el único campo común a
+todas las vistas, y único en la dimensión. Sobre esa estructura:
 
-**Consecuencia para los segmentadores:** un slicer tampoco puede filtrar visuales
-de otra tabla. Por eso los segmentadores están colocados junto a los visuales de
-su misma tabla y solo afectan a esos. No es una limitación del diseño, es
-consecuencia de que no haya relaciones. Si en el futuro se quisiera un filtro
-global de verdad, habría que añadir una tabla de dimensiones y relaciones en el
-modelo, y eso exige construirla en Dremio o con DAX.
+- Un **segmentador de simulación por página**, preseleccionado en `SIM-01`,
+  filtra las 11 tablas a la vez: es el único filtro global posible sin DAX.
+- Las relaciones van de la dimensión (lado `1`) a cada tabla, con
+  **filtrado en ambos sentidos**. Las cardinalidades están declaradas
+  explícitas en el TMDL y verificadas contra los datos: **1:1** con `D9`
+  (resume cada simulación en una fila) y **1:\*** con el resto (varias filas
+  por simulación: D10 1.007, D7 107, D5b 50, D1 20, D6 20, D5 10, D8 10,
+  D2 5, D4 2). No hay ninguna relación n:n: exigiría valores duplicados de
+  `simulation_id` en la dimensión, que no los tiene.
+- La **vista de modelo** se abre organizada: dimensión en el centro, tablas
+  alrededor (`diagramLayout.json` generado con las posiciones y lineageTags
+  estables de cada tabla).
+
+**Consecuencia para los demás segmentadores:** puerta, franja y compañía solo
+pueden filtrar los visuales de su misma tabla (la relación de simulación no los
+conecta entre sí). Por eso están colocados junto a los visuales de su tabla y
+solo afectan a esos.
 
 ## Otros errores corregidos
 

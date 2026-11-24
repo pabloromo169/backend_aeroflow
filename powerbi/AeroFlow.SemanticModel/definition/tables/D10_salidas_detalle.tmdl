@@ -1,4 +1,5 @@
 table D10_salidas_detalle
+	lineageTag: {90225c79-563c-5160-9596-72f19b8640e9}
 
 	column simulation_id
 		dataType: string

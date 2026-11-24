@@ -1,4 +1,5 @@
 table D2_pct_sobre_umbral_puerta
+	lineageTag: {063a60cb-3d99-5de3-991c-a5a19a9cf71a}
 
 	column simulation_id
 		dataType: string

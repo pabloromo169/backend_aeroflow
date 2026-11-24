@@ -1,4 +1,5 @@
 table D6_retraso_medio_magnitud
+	lineageTag: {a1962910-f71b-55c2-bac3-801dd2c3a73a}
 
 	column simulation_id
 		dataType: string

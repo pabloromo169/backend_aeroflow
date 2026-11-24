@@ -1,4 +1,5 @@
 table D7_aviones_repetidos_dia
+	lineageTag: {14fd43f8-5880-5458-846b-bce378d17d4e}
 
 	column simulation_id
 		dataType: string

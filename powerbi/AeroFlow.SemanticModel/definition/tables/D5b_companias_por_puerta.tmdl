@@ -1,4 +1,5 @@
 table D5b_companias_por_puerta
+	lineageTag: {5ce8747d-a76a-5433-a5a3-b1f6e2619bbd}
 
 	column simulation_id
 		dataType: string
